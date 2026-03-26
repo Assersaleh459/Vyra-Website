@@ -1262,10 +1262,10 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
       <div class="toolbar">
         <div class="search-wrap">
           <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input class="search-input" placeholder="Search users..."/>
+          <input class="search-input" placeholder="Search users..." oninput="renderUsers(this.value)"/>
         </div>
         <div class="ml-auto">
-          <button class="btn btn-primary" onclick="openModal('user-modal')">
+          <button class="btn btn-primary" onclick="openAddUser()">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add User
           </button>
@@ -1554,10 +1554,11 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
 <div class="modal-overlay" id="user-modal">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <div class="modal-title">Add User</div>
+      <div class="modal-title" id="user-modal-title">Add User</div>
       <div class="modal-close" onclick="closeModal('user-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="um-id"/>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Full Name <span>*</span></label>
@@ -1567,9 +1568,9 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
           <label class="form-label">Email <span>*</span></label>
           <input class="form-ctrl" id="um-email" type="email" placeholder="user@vyrasystems.com"/>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="um-pass-group">
           <label class="form-label">Password <span>*</span></label>
-          <input class="form-ctrl" id="um-pass" type="password" placeholder="Min. 8 characters"/>
+          <input class="form-ctrl" id="um-pass" type="password" placeholder="Min. 6 characters"/>
         </div>
         <div class="form-group">
           <label class="form-label">Role</label>
@@ -1578,11 +1579,18 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
             <option value="user">User — Limited Access</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-ctrl" id="um-status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('user-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveUser()">Create User</button>
+      <button class="btn btn-primary" onclick="saveUser()" id="um-save-btn">Create User</button>
     </div>
   </div>
 </div>
@@ -1634,8 +1642,7 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
 <!-- Toast -->
 <div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-
+<script>
 // ═══════════════════════════════════════════════════════
 // DATA STORE
 // ═══════════════════════════════════════════════════════
@@ -2204,31 +2211,102 @@ function saveReceipt(){
 function deleteInvoice(id){openConfirm("Delete this invoice?",()=>{DB.invoices=DB.invoices.filter(i=>i.id!==id);renderInvoices();renderDashboard();toast("Deleted","error")})}
 
 // ── USERS
-function renderUsers(){
-  document.getElementById("users-table").innerHTML=DB.users.map(u=>`
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:10px">
-        <div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--teal))">${u.name[0]}</div>
-        <div><div style="font-weight:600">${u.name}</div></div>
-      </div></td>
-      <td class="td-light">${u.email}</td>
-      <td>${STATUS_BADGE[u.role]||u.role}</td>
-      <td class="td-light">${u.lastActive}</td>
-      <td>${STATUS_BADGE[u.status]||u.status}</td>
-      <td>
-        <div style="display:flex;gap:4px">
-          <button class="btn-icon" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          ${u.id>1?`<button class="btn-icon" title="Delete" onclick="deleteUser(${u.id})" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`:""}
-        </div>
-      </td>
-    </tr>`).join("");
+function renderUsers(filter){
+  var list = filter ? DB.users.filter(function(u){
+    return u.name.toLowerCase().includes(filter.toLowerCase()) ||
+           u.email.toLowerCase().includes(filter.toLowerCase());
+  }) : DB.users;
+  document.getElementById("users-table").innerHTML = list.map(function(u){
+    return '<tr>' +
+      '<td><div style="display:flex;align-items:center;gap:10px">' +
+        '<div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--teal))">' + u.name[0] + '</div>' +
+        '<div><div style="font-weight:600">' + u.name + '</div><div style="font-size:.72rem;color:var(--text3)">' + u.email + '</div></div>' +
+      '</div></td>' +
+      '<td>' + (STATUS_BADGE[u.role] || u.role) + '</td>' +
+      '<td class="td-light">' + (u.lastActive || '—') + '</td>' +
+      '<td>' + (STATUS_BADGE[u.status] || u.status) + '</td>' +
+      '<td><div style="display:flex;gap:6px;align-items:center">' +
+        '<button class="btn btn-outline btn-sm" onclick="editUser(' + u.id + ')">' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+          ' Edit' +
+        '</button>' +
+        '<button class="btn btn-sm" onclick="toggleUserStatus(' + u.id + ')" style="background:' + (u.status==='active' ? 'rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.25)' : 'rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.25)') + '">' +
+          (u.status === 'active' ? 'Deactivate' : 'Activate') +
+        '</button>' +
+        (u.id > 1 ?
+          '<button class="btn-icon" onclick="deleteUser(' + u.id + ')" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)">' +
+            '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
+          '</button>'
+        : '') +
+      '</div></td>' +
+    '</tr>';
+  }).join('') || '<tr><td colspan="5"><div class="empty-state"><div class="empty-title">No users found</div></div></td></tr>';
+}
+function editUser(id){
+  var u = DB.users.find(function(x){ return x.id === id; });
+  if(!u){ alert("User not found"); return; }
+
+  document.getElementById("user-modal-title").textContent = "Edit User";
+  document.getElementById("um-save-btn").textContent = "Save Changes";
+  document.getElementById("um-id").value = id;
+  document.getElementById("um-name").value = u.name;
+  document.getElementById("um-email").value = u.email;
+  document.getElementById("um-pass").value = "";
+  document.getElementById("um-role").value = u.role;
+  document.getElementById("um-status").value = u.status;
+
+  var passLbl = document.querySelector("#um-pass-group .form-label");
+  if(passLbl) passLbl.innerHTML = 'Password <span style="color:var(--text3);font-weight:400">(leave blank to keep)</span>';
+
+  openModal("user-modal");
+}
+function toggleUserStatus(id){
+  const u=DB.users.find(x=>x.id===id);
+  if(!u)return;
+  u.status=u.status==="active"?"inactive":"active";
+  renderUsers();
+  toast("User "+(u.status==="active"?"activated":"deactivated"));
 }
 function saveUser(){
-  const name=document.getElementById("um-name").value.trim();
-  const email=document.getElementById("um-email").value.trim();
-  if(!name||!email)return;
-  DB.users.push({id:nextIds.user++,name,email,role:document.getElementById("um-role").value,status:"active",lastActive:"Just now"});
-  closeModal("user-modal");renderUsers();toast("User created");
+  var name   = document.getElementById("um-name").value.trim();
+  var email  = document.getElementById("um-email").value.trim();
+  var pass   = document.getElementById("um-pass").value;
+  var role   = document.getElementById("um-role").value;
+  var status = document.getElementById("um-status").value || "active";
+  var id     = parseInt(document.getElementById("um-id").value) || 0;
+
+  if(!name || !email){ toast("Name and email are required","error"); return; }
+
+  if(id){
+    // UPDATE existing user
+    var idx = DB.users.findIndex(function(u){ return u.id === id; });
+    if(idx > -1){
+      DB.users[idx].name   = name;
+      DB.users[idx].email  = email;
+      DB.users[idx].role   = role;
+      DB.users[idx].status = status;
+      toast("User updated successfully");
+    }
+  } else {
+    // CREATE new user
+    if(!pass || pass.length < 6){ toast("Password must be at least 6 characters","error"); return; }
+    DB.users.push({ id: nextIds.user++, name: name, email: email, role: role, status: "active", lastActive: "Just now" });
+    toast("User created successfully");
+  }
+
+  // Reset modal state
+  document.getElementById("um-id").value = "";
+  document.getElementById("user-modal-title").textContent = "Add User";
+  document.getElementById("um-save-btn").textContent = "Create User";
+  document.getElementById("um-name").value = "";
+  document.getElementById("um-email").value = "";
+  document.getElementById("um-pass").value = "";
+
+  var passLbl = document.querySelector("#um-pass-group .form-label");
+  if(passLbl) passLbl.innerHTML = 'Password <span>*</span>';
+
+  closeModal("user-modal");
+  renderUsers();
 }
 function deleteUser(id){openConfirm("Delete this user?",()=>{DB.users=DB.users.filter(u=>u.id!==id);renderUsers();toast("User deleted","error")})}
 
@@ -2307,6 +2385,22 @@ document.addEventListener('DOMContentLoaded', function() {
   if (em) em.value = 'admin@vyrasystems.com';
   if (pw) pw.value = 'admin123';
 });
+
+function openAddUser(){
+  // Reset modal to Add mode
+  document.getElementById("um-id").value = "";
+  document.getElementById("um-name").value = "";
+  document.getElementById("um-email").value = "";
+  document.getElementById("um-pass").value = "";
+  document.getElementById("um-role").value = "user";
+  document.getElementById("um-status").value = "active";
+  document.getElementById("user-modal-title").textContent = "Add User";
+  document.getElementById("um-save-btn").textContent = "Create User";
+  var passLbl = document.querySelector("#um-pass-group .form-label");
+  if(passLbl) passLbl.innerHTML = 'Password <span>*</span>';
+  openModal("user-modal");
+}
+
 </script>
 </body>
 </html>
