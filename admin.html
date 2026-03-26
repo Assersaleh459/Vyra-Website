@@ -1701,12 +1701,12 @@ const SEED = {
     {id:6,name:"Cairo University Hospital",contact:"Dina Samir", phone:"+20 100 666 6666",email:"dina@cuh.edu.eg",      address:"Giza",                 created:"2024-06-18"},
   ],
   orders:[
-    {id:1,num:"ORD-001",customer_id:1,service:"Advanced CCTV & Security",   status:"completed",  amount:148000,desc:"Full CCTV overhaul - 148 cameras",     created:"2024-01-20"},
-    {id:2,num:"ORD-002",customer_id:2,service:"Networking & IT Infrastructure",status:"completed",amount:85000, desc:"Branch network upgrade - Cat6A",       created:"2024-02-25"},
-    {id:3,num:"ORD-003",customer_id:3,service:"Sound & Audio Systems",       status:"in_progress",amount:62000, desc:"PA & BGM system - 8 zones",             created:"2024-03-15"},
-    {id:4,num:"ORD-004",customer_id:5,service:"Networking & IT Infrastructure",status:"in_progress",amount:210000,desc:"Government campus Wi-Fi deployment", created:"2024-04-10"},
-    {id:5,num:"ORD-005",customer_id:4,service:"Advanced CCTV & Security",   status:"approved",   amount:95000, desc:"Perimeter surveillance system",          created:"2024-05-18"},
-    {id:6,num:"ORD-006",customer_id:6,service:"Networking & IT Infrastructure",status:"quotation",amount:180000,desc:"Hospital clinical network",             created:"2024-06-22"},
+    {id:1,num:"ORD-001",customer_id:1,service:"Advanced CCTV & Security",   status:"completed",  amount:148000,description:"Full CCTV overhaul - 148 cameras",     created:"2024-01-20"},
+    {id:2,num:"ORD-002",customer_id:2,service:"Networking & IT Infrastructure",status:"completed",amount:85000, description:"Branch network upgrade - Cat6A",       created:"2024-02-25"},
+    {id:3,num:"ORD-003",customer_id:3,service:"Sound & Audio Systems",       status:"in_progress",amount:62000, description:"PA & BGM system - 8 zones",             created:"2024-03-15"},
+    {id:4,num:"ORD-004",customer_id:5,service:"Networking & IT Infrastructure",status:"in_progress",amount:210000,description:"Government campus Wi-Fi deployment", created:"2024-04-10"},
+    {id:5,num:"ORD-005",customer_id:4,service:"Advanced CCTV & Security",   status:"approved",   amount:95000, description:"Perimeter surveillance system",          created:"2024-05-18"},
+    {id:6,num:"ORD-006",customer_id:6,service:"Networking & IT Infrastructure",status:"quotation",amount:180000,description:"Hospital clinical network",             created:"2024-06-22"},
   ],
   quotations:[
     {id:1,num:"Q-001",customer_id:1,items:[{desc:"IP Cameras (Hikvision 4K)",type:"material",qty:148,price:450,total:66600},{desc:"NVR Server 16TB",type:"material",qty:2,price:8500,total:17000},{desc:"Installation & Cabling",type:"labor",qty:1,price:35000,total:35000},{desc:"System Configuration",type:"labor",qty:1,price:12000,total:12000}],mat:83600,lab:47000,total:130600,valid:"2024-02-28",notes:"Prices valid for 30 days",created:"2024-01-18"},
@@ -1721,15 +1721,15 @@ const SEED = {
     {id:5,num:"INV-005",customer_id:4,order_id:5,amount:95000, paid:0,     status:"unpaid",  due:"2024-06-30",created:"2024-05-22"},
   ],
   receipts:[
-    {id:1,num:"REC-001",invoice_id:1,amount:148000,method:"bank_transfer",date:"2024-02-15",ref:"TRF-240215",notes:"Full payment",  created:"2024-02-15"},
-    {id:2,num:"REC-002",invoice_id:2,amount:50000, method:"check",        date:"2024-03-10",ref:"CHK-8821",   notes:"First installment",created:"2024-03-10"},
-    {id:3,num:"REC-003",invoice_id:4,amount:105000,method:"bank_transfer",date:"2024-04-20",ref:"TRF-240420",notes:"50% advance",   created:"2024-04-20"},
+    {id:1,num:"REC-001",invoice_id:1,amount:148000,method:"bank_transfer",payment_date:"2024-02-15",ref:"TRF-240215",notes:"Full payment",  created:"2024-02-15"},
+    {id:2,num:"REC-002",invoice_id:2,amount:50000, method:"check",        payment_date:"2024-03-10",ref:"CHK-8821",   notes:"First installment",created:"2024-03-10"},
+    {id:3,num:"REC-003",invoice_id:4,amount:105000,method:"bank_transfer",payment_date:"2024-04-20",ref:"TRF-240420",notes:"50% advance",   created:"2024-04-20"},
   ],
   users:[
-    {id:1,name:"Admin User",  email:"admin@vyrasystems.com",role_id:1,status:"active",  lastActive:"Just now"},
-    {id:2,name:"Ahmed Hassan",email:"ahmed@vyrasystems.com",role_id:1,status:"active",  lastActive:"2h ago"},
-    {id:3,name:"Sara Nakhlawy",email:"sara@vyrasystems.com",role_id:2,status:"active",  lastActive:"1d ago"},
-    {id:4,name:"Omar Farid",  email:"omar@vyrasystems.com", role_id:4,status:"inactive",lastActive:"5d ago"},
+    {id:1,name:"Admin User",  email:"admin@vyrasystems.com",role_id:1,status:"active",  last_active:"Just now"},
+    {id:2,name:"Ahmed Hassan",email:"ahmed@vyrasystems.com",role_id:1,status:"active",  last_active:"2h ago"},
+    {id:3,name:"Sara Nakhlawy",email:"sara@vyrasystems.com",role_id:2,status:"active",  last_active:"1d ago"},
+    {id:4,name:"Omar Farid",  email:"omar@vyrasystems.com", role_id:4,status:"inactive",last_active:"5d ago"},
   ],
 };
 
@@ -2143,7 +2143,7 @@ function renderOrders(filter='',statusF=''){
     return`<tr>
       <td class="td-mono" style="color:var(--teal);font-weight:700">${o.num}</td>
       <td><div style="font-weight:600">${c?.name||'—'}</div></td>
-      <td class="td-light" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.desc||'—'}</td>
+      <td class="td-light" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.description||o.desc||'—'}</td>
       <td>${STATUS_BADGE[o.status]||o.status}</td>
       <td class="td-mono">${fmtCurrency(o.amount)}</td>
       <td class="td-light">${fmtDate(o.created)}</td>
@@ -2182,15 +2182,14 @@ function editOrder(id){
   document.getElementById('om-customer').value=o.customer_id;
   document.getElementById('om-status').value=o.status;
   document.getElementById('om-amount').value=o.amount;
-  document.getElementById('om-desc').value=o.desc||'';
+  document.getElementById('om-desc').value=o.description||o.desc||'';
   document.getElementById('om-service').value=o.service||'';
 }
 async function saveOrder(){
   const custId=parseInt(document.getElementById('om-customer').value);
   if(!custId){document.getElementById('fg-om-customer').classList.add('err');return;}
   const id=parseInt(document.getElementById('om-id').value)||0;
-  const desc_val=document.getElementById('om-desc').value;
-  const data={customer_id:custId,status:document.getElementById('om-status').value,amount:parseFloat(document.getElementById('om-amount').value)||0,desc:desc_val,description:desc_val,service:document.getElementById('om-service').value};
+  const data={customer_id:custId,status:document.getElementById('om-status').value,amount:parseFloat(document.getElementById('om-amount').value)||0,description:document.getElementById('om-desc').value,service:document.getElementById('om-service').value};
   if(id){
     const idx=DB.orders.findIndex(o=>o.id===id);
     DB.orders[idx]={...DB.orders[idx],...data};
@@ -2368,7 +2367,7 @@ function renderInvoices(statusF=''){
       <td><div style="font-weight:600">${c?.name||'—'}</div></td>
       <td class="td-mono" style="color:var(--green);font-weight:700">${fmtCurrency(r.amount)}</td>
       <td><span class="badge badge-navy">${METHOD_LABELS[r.method]||r.method}</span></td>
-      <td class="td-light">${fmtDate(r.date)}</td>
+      <td class="td-light">${fmtDate(r.payment_date||r.date)}</td>
       <td class="td-light">${r.ref||'—'}</td>
     </tr>`;
   }).join('')||`<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No receipts</div></div></td></tr>`;
@@ -2415,7 +2414,7 @@ async function saveReceipt(){
   const amt=parseFloat(document.getElementById('rm-amount').value);
   if(!invId){document.getElementById('fg-rm-invoice').classList.add('err');return;}
   if(!amt){document.getElementById('fg-rm-amount').classList.add('err');return;}
-  const newRow={id:nextIds.receipt,num:genNum('REC',nextIds.receipt++),invoice_id:invId,amount:amt,method:document.getElementById('rm-method').value,date:document.getElementById('rm-date').value,ref:document.getElementById('rm-ref').value,notes:document.getElementById('rm-notes').value,created:new Date().toISOString().split('T')[0]};
+  const newRow={id:nextIds.receipt,num:genNum('REC',nextIds.receipt++),invoice_id:invId,amount:amt,method:document.getElementById('rm-method').value,payment_date:document.getElementById('rm-date').value,ref:document.getElementById('rm-ref').value,notes:document.getElementById('rm-notes').value,created:new Date().toISOString().split('T')[0]};
   const saved=await sbInsert('receipts',newRow);
   if(saved) newRow.id=saved.id;
   DB.receipts.push(newRow);
@@ -2449,7 +2448,7 @@ function renderUsers(filter){
     return`<tr>
       <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--teal))">${u.name[0]}</div><div><div style="font-weight:600">${u.name}</div><div style="font-size:.72rem;color:var(--text3)">${u.email}</div></div></div></td>
       <td>${roleBadge}</td>
-      <td class="td-light">${u.lastActive||'—'}</td>
+      <td class="td-light">${u.last_active||u.lastActive||'—'}</td>
       <td>${STATUS_BADGE[u.status]||u.status}</td>
       <td><div style="display:flex;gap:6px;align-items:center">
         <button class="btn btn-outline btn-sm" onclick="editUser(${u.id})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
@@ -2495,7 +2494,7 @@ async function saveUser(){
     }
   }else{
     if(!pass||pass.length<6){toast('Password must be at least 6 characters','error');return;}
-    var newRow={id:nextIds.user++,name,email,role_id,status:'active',lastActive:'Just now'};
+    var newRow={id:nextIds.user++,name,email,role_id,status:'active',last_active:'Just now'};
     var saved=await sbInsert('users',newRow);
     if(saved) newRow.id=saved.id;
     DB.users.push(newRow);
