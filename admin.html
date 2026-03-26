@@ -2368,6 +2368,9 @@ function switchSettingsTab(tab,el){
   document.querySelectorAll(".settings-nav-item").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
 }
+function saveSettings(){
+  toast('Settings saved successfully');
+}
 function initApp() {
   renderDashboard();
   renderCustomers();
