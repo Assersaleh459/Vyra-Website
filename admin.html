@@ -571,6 +571,7 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
   .stat-grid{grid-template-columns:1fr}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -1643,54 +1644,39 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
 <div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// DATA STORE
-// ═══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
+   SUPABASE CONFIG
+   Replace the two values below with your project details
+   from https://supabase.com → Settings → API
+══════════════════════════════════════════════════════ */
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://abcxyz.supabase.co
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+
+// Initialise client (falls back to offline mode if not configured)
+let SB = null;
+let ONLINE = false;
+try {
+  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+    SB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    ONLINE = true;
+  }
+} catch(e) { console.warn('Supabase not configured — running in offline mode'); }
+
+/* ══════════════════════════════════════════════════════
+   LOCAL STATE  (in-memory cache, always kept in sync)
+══════════════════════════════════════════════════════ */
 const DB = {
-  customers: [
-    {id:1,name:"Cairo Grand Hotel",contact:"Mahmoud Hassan",phone:"+20 100 111 1111",email:"ops@cairogrand.com",address:"Zamalek, Cairo",created:"2024-01-15"},
-    {id:2,name:"Bank of Alexandria",contact:"Sara Khalil",phone:"+20 100 222 2222",email:"it@bofa.com.eg",address:"Alexandria",created:"2024-02-20"},
-    {id:3,name:"Maadi Mall Management",contact:"Omar Farid",phone:"+20 100 333 3333",email:"admin@maadimall.com",address:"Maadi, Cairo",created:"2024-03-10"},
-    {id:4,name:"Nile Pharma Co.",contact:"Nour Ibrahim",phone:"+20 100 444 4444",email:"nour@nilepharm.com",address:"10th of Ramadan City",created:"2024-04-05"},
-    {id:5,name:"New Capital Gov Office",contact:"Karim Mostafa",phone:"+20 100 555 5555",email:"it@newcap.gov.eg",address:"New Administrative Capital",created:"2024-05-12"},
-    {id:6,name:"Cairo University Hospital",contact:"Dina Samir",phone:"+20 100 666 6666",email:"dina@cuh.edu.eg",address:"Giza",created:"2024-06-18"},
-  ],
-  orders: [
-    {id:1,num:"ORD-001",customer_id:1,service:"Advanced CCTV & Security",status:"completed",amount:148000,desc:"Full CCTV overhaul - 148 cameras",created:"2024-01-20"},
-    {id:2,num:"ORD-002",customer_id:2,service:"Networking & IT Infrastructure",status:"completed",amount:85000,desc:"Branch network upgrade - Cat6A",created:"2024-02-25"},
-    {id:3,num:"ORD-003",customer_id:3,service:"Sound & Audio Systems",status:"in_progress",amount:62000,desc:"PA & BGM system - 8 zones",created:"2024-03-15"},
-    {id:4,num:"ORD-004",customer_id:5,service:"Networking & IT Infrastructure",status:"in_progress",amount:210000,desc:"Government campus Wi-Fi deployment",created:"2024-04-10"},
-    {id:5,num:"ORD-005",customer_id:4,service:"Advanced CCTV & Security",status:"approved",amount:95000,desc:"Perimeter surveillance system",created:"2024-05-18"},
-    {id:6,num:"ORD-006",customer_id:6,service:"Networking & IT Infrastructure",status:"quotation",amount:180000,desc:"Hospital clinical network",created:"2024-06-22"},
-  ],
-  quotations: [
-    {id:1,num:"Q-001",customer_id:1,items:[{desc:"IP Cameras (Hikvision 4K)",type:"material",qty:148,price:450,total:66600},{desc:"NVR Server 16TB",type:"material",qty:2,price:8500,total:17000},{desc:"Installation & Cabling",type:"labor",qty:1,price:35000,total:35000},{desc:"System Configuration",type:"labor",qty:1,price:12000,total:12000}],mat:83600,lab:47000,total:130600,valid:"2024-02-28",notes:"Prices valid for 30 days",created:"2024-01-18"},
-    {id:2,num:"Q-002",customer_id:2,items:[{desc:"Cat6A Cable (per meter)",type:"material",qty:2400,price:12,total:28800},{desc:"Cisco Catalyst Switches x8",type:"material",qty:8,price:3200,total:25600},{desc:"Structured Cabling Installation",type:"labor",qty:1,price:22000,total:22000}],mat:54400,lab:22000,total:76400,valid:"2024-03-15",notes:"",created:"2024-02-22"},
-    {id:3,num:"Q-003",customer_id:3,items:[{desc:"Bosch Ceiling Speakers",type:"material",qty:80,price:320,total:25600},{desc:"TOA Mixer Amplifier",type:"material",qty:4,price:4200,total:16800},{desc:"Audio Installation",type:"labor",qty:1,price:18000,total:18000}],mat:42400,lab:18000,total:60400,valid:"2024-04-10",notes:"Emergency PA included",created:"2024-03-12"},
-  ],
-  invoices: [
-    {id:1,num:"INV-001",customer_id:1,order_id:1,amount:148000,paid:148000,status:"paid",due:"2024-02-28",created:"2024-01-25"},
-    {id:2,num:"INV-002",customer_id:2,order_id:2,amount:85000,paid:50000,status:"partial",due:"2024-03-31",created:"2024-02-28"},
-    {id:3,num:"INV-003",customer_id:3,order_id:3,amount:62000,paid:0,status:"unpaid",due:"2024-04-30",created:"2024-03-20"},
-    {id:4,num:"INV-004",customer_id:5,order_id:4,amount:210000,paid:105000,status:"partial",due:"2024-05-31",created:"2024-04-15"},
-    {id:5,num:"INV-005",customer_id:4,order_id:5,amount:95000,paid:0,status:"unpaid",due:"2024-06-30",created:"2024-05-22"},
-  ],
-  receipts: [
-    {id:1,num:"REC-001",invoice_id:1,amount:148000,method:"bank_transfer",date:"2024-02-15",ref:"TRF-240215",notes:"Full payment",created:"2024-02-15"},
-    {id:2,num:"REC-002",invoice_id:2,amount:50000,method:"check",date:"2024-03-10",ref:"CHK-8821",notes:"First installment",created:"2024-03-10"},
-    {id:3,num:"REC-003",invoice_id:4,amount:105000,method:"bank_transfer",date:"2024-04-20",ref:"TRF-240420",notes:"50% advance",created:"2024-04-20"},
-  ],
-  users: [
-    {id:1,name:"Admin User",email:"admin@vyrasystems.com",role_id:1,status:"active",lastActive:"Just now"},
-    {id:2,name:"Ahmed Hassan",email:"ahmed@vyrasystems.com",role_id:1,status:"active",lastActive:"2h ago"},
-    {id:3,name:"Sara Nakhlawy",email:"sara@vyrasystems.com",role_id:2,status:"active",lastActive:"1d ago"},
-    {id:4,name:"Omar Farid",email:"omar@vyrasystems.com",role_id:4,status:"inactive",lastActive:"5d ago"},
-  ],
+  customers:  [],
+  orders:     [],
+  quotations: [],
+  invoices:   [],
+  receipts:   [],
+  users:      [],
   roles: [
     {id:1,name:"Administrator",desc:"Full access to all modules",color:"navy"},
-    {id:2,name:"Sales Manager",desc:"Access to CRM and quotations",color:"teal"},
-    {id:3,name:"Finance",desc:"Invoices, receipts and reports",color:"purple"},
-    {id:4,name:"Technician",desc:"View orders and site settings",color:"blue"},
+    {id:2,name:"Sales Manager", desc:"CRM and quotations",       color:"teal"},
+    {id:3,name:"Finance",       desc:"Invoices and reports",     color:"purple"},
+    {id:4,name:"Technician",    desc:"Orders and site settings", color:"blue"},
   ],
   permissions: {
     1:{dashboard:true,customers:true,orders:true,quotations:true,invoices:true,reports:true,"site-settings":true,users:true,roles:true},
@@ -1700,163 +1686,337 @@ const DB = {
   }
 };
 
-let nextIds = {customer:7,order:7,quotation:4,invoice:6,receipt:4,user:5};
-let deleteCallback = null;
-let selectedRoleId = 1;
-let currentInvTab = "invoices";
-let orderFilterStatus = "";
+let nextIds = {customer:1,order:1,quotation:1,invoice:1,receipt:1,user:1};
 
-// ── COUNTERS
-function genNum(prefix,n){return prefix+"-"+String(n).padStart(3,"0")}
+/* ══════════════════════════════════════════════════════
+   SEED DATA  (used in offline mode only)
+══════════════════════════════════════════════════════ */
+const SEED = {
+  customers:[
+    {id:1,name:"Cairo Grand Hotel",      contact:"Mahmoud Hassan",phone:"+20 100 111 1111",email:"ops@cairogrand.com",   address:"Zamalek, Cairo",       created:"2024-01-15"},
+    {id:2,name:"Bank of Alexandria",     contact:"Sara Khalil",   phone:"+20 100 222 2222",email:"it@bofa.com.eg",       address:"Alexandria",           created:"2024-02-20"},
+    {id:3,name:"Maadi Mall Management",  contact:"Omar Farid",    phone:"+20 100 333 3333",email:"admin@maadimall.com",  address:"Maadi, Cairo",         created:"2024-03-10"},
+    {id:4,name:"Nile Pharma Co.",        contact:"Nour Ibrahim",  phone:"+20 100 444 4444",email:"nour@nilepharm.com",   address:"10th of Ramadan City", created:"2024-04-05"},
+    {id:5,name:"New Capital Gov Office", contact:"Karim Mostafa", phone:"+20 100 555 5555",email:"it@newcap.gov.eg",     address:"New Administrative Capital",created:"2024-05-12"},
+    {id:6,name:"Cairo University Hospital",contact:"Dina Samir", phone:"+20 100 666 6666",email:"dina@cuh.edu.eg",      address:"Giza",                 created:"2024-06-18"},
+  ],
+  orders:[
+    {id:1,num:"ORD-001",customer_id:1,service:"Advanced CCTV & Security",   status:"completed",  amount:148000,desc:"Full CCTV overhaul - 148 cameras",     created:"2024-01-20"},
+    {id:2,num:"ORD-002",customer_id:2,service:"Networking & IT Infrastructure",status:"completed",amount:85000, desc:"Branch network upgrade - Cat6A",       created:"2024-02-25"},
+    {id:3,num:"ORD-003",customer_id:3,service:"Sound & Audio Systems",       status:"in_progress",amount:62000, desc:"PA & BGM system - 8 zones",             created:"2024-03-15"},
+    {id:4,num:"ORD-004",customer_id:5,service:"Networking & IT Infrastructure",status:"in_progress",amount:210000,desc:"Government campus Wi-Fi deployment", created:"2024-04-10"},
+    {id:5,num:"ORD-005",customer_id:4,service:"Advanced CCTV & Security",   status:"approved",   amount:95000, desc:"Perimeter surveillance system",          created:"2024-05-18"},
+    {id:6,num:"ORD-006",customer_id:6,service:"Networking & IT Infrastructure",status:"quotation",amount:180000,desc:"Hospital clinical network",             created:"2024-06-22"},
+  ],
+  quotations:[
+    {id:1,num:"Q-001",customer_id:1,items:[{desc:"IP Cameras (Hikvision 4K)",type:"material",qty:148,price:450,total:66600},{desc:"NVR Server 16TB",type:"material",qty:2,price:8500,total:17000},{desc:"Installation & Cabling",type:"labor",qty:1,price:35000,total:35000},{desc:"System Configuration",type:"labor",qty:1,price:12000,total:12000}],mat:83600,lab:47000,total:130600,valid:"2024-02-28",notes:"Prices valid for 30 days",created:"2024-01-18"},
+    {id:2,num:"Q-002",customer_id:2,items:[{desc:"Cat6A Cable (per meter)",type:"material",qty:2400,price:12,total:28800},{desc:"Cisco Catalyst Switches x8",type:"material",qty:8,price:3200,total:25600},{desc:"Structured Cabling Installation",type:"labor",qty:1,price:22000,total:22000}],mat:54400,lab:22000,total:76400,valid:"2024-03-15",notes:"",created:"2024-02-22"},
+    {id:3,num:"Q-003",customer_id:3,items:[{desc:"Bosch Ceiling Speakers",type:"material",qty:80,price:320,total:25600},{desc:"TOA Mixer Amplifier",type:"material",qty:4,price:4200,total:16800},{desc:"Audio Installation",type:"labor",qty:1,price:18000,total:18000}],mat:42400,lab:18000,total:60400,valid:"2024-04-10",notes:"Emergency PA included",created:"2024-03-12"},
+  ],
+  invoices:[
+    {id:1,num:"INV-001",customer_id:1,order_id:1,amount:148000,paid:148000,status:"paid",    due:"2024-02-28",created:"2024-01-25"},
+    {id:2,num:"INV-002",customer_id:2,order_id:2,amount:85000, paid:50000, status:"partial", due:"2024-03-31",created:"2024-02-28"},
+    {id:3,num:"INV-003",customer_id:3,order_id:3,amount:62000, paid:0,     status:"unpaid",  due:"2024-04-30",created:"2024-03-20"},
+    {id:4,num:"INV-004",customer_id:5,order_id:4,amount:210000,paid:105000,status:"partial", due:"2024-05-31",created:"2024-04-15"},
+    {id:5,num:"INV-005",customer_id:4,order_id:5,amount:95000, paid:0,     status:"unpaid",  due:"2024-06-30",created:"2024-05-22"},
+  ],
+  receipts:[
+    {id:1,num:"REC-001",invoice_id:1,amount:148000,method:"bank_transfer",date:"2024-02-15",ref:"TRF-240215",notes:"Full payment",  created:"2024-02-15"},
+    {id:2,num:"REC-002",invoice_id:2,amount:50000, method:"check",        date:"2024-03-10",ref:"CHK-8821",   notes:"First installment",created:"2024-03-10"},
+    {id:3,num:"REC-003",invoice_id:4,amount:105000,method:"bank_transfer",date:"2024-04-20",ref:"TRF-240420",notes:"50% advance",   created:"2024-04-20"},
+  ],
+  users:[
+    {id:1,name:"Admin User",  email:"admin@vyrasystems.com",role_id:1,status:"active",  lastActive:"Just now"},
+    {id:2,name:"Ahmed Hassan",email:"ahmed@vyrasystems.com",role_id:1,status:"active",  lastActive:"2h ago"},
+    {id:3,name:"Sara Nakhlawy",email:"sara@vyrasystems.com",role_id:2,status:"active",  lastActive:"1d ago"},
+    {id:4,name:"Omar Farid",  email:"omar@vyrasystems.com", role_id:4,status:"inactive",lastActive:"5d ago"},
+  ],
+};
 
-// ── AUTH
+/* ══════════════════════════════════════════════════════
+   SUPABASE HELPERS
+══════════════════════════════════════════════════════ */
+async function sbFetch(table) {
+  if (!ONLINE) return null;
+  try {
+    const { data, error } = await SB.from(table).select('*').order('id');
+    if (error) throw error;
+    return data;
+  } catch(e) {
+    console.error('sbFetch', table, e.message);
+    return null;
+  }
+}
+
+async function sbInsert(table, row) {
+  if (!ONLINE) return null;
+  try {
+    const clean = {...row};
+    delete clean.id; // let Supabase auto-generate
+    // Map JS field names → Supabase column names
+    if (table === 'orders' && clean.desc !== undefined) { clean.description = clean.desc; delete clean.desc; }
+    if (table === 'users' && clean.lastActive !== undefined) { clean.last_active = clean.lastActive; delete clean.lastActive; }
+    const { data, error } = await SB.from(table).insert(clean).select().single();
+    if (error) throw error;
+    return data;
+  } catch(e) {
+    console.error('sbInsert', table, e.message);
+    return null;
+  }
+}
+
+async function sbUpdate(table, id, changes) {
+  if (!ONLINE) return null;
+  try {
+    const mapped = {...changes};
+    if (table === 'orders' && mapped.desc !== undefined) { mapped.description = mapped.desc; delete mapped.desc; }
+    if (table === 'users' && mapped.lastActive !== undefined) { mapped.last_active = mapped.lastActive; delete mapped.lastActive; }
+    const { data, error } = await SB.from(table).update(mapped).eq('id', id).select().single();
+    if (error) throw error;
+    return data;
+  } catch(e) {
+    console.error('sbUpdate', table, e.message);
+    return null;
+  }
+}
+
+async function sbDelete(table, id) {
+  if (!ONLINE) return false;
+  try {
+    const { error } = await SB.from(table).delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  } catch(e) {
+    console.error('sbDelete', table, e.message);
+    return false;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   DATA LOADING
+══════════════════════════════════════════════════════ */
+async function loadAllData() {
+  showLoadingOverlay(true);
+  if (ONLINE) {
+    // Fetch from Supabase
+    const tables = ['customers','orders','quotations','invoices','receipts','users'];
+    const results = await Promise.all(tables.map(t => sbFetch(t)));
+    tables.forEach((t, i) => {
+      if (results[i] && results[i].length > 0) {
+        let rows = results[i];
+        // Normalise Supabase column names → JS field names
+        if (t === 'orders') rows = rows.map(r => ({...r, desc: r.description || r.desc || ''}));
+        if (t === 'users')  rows = rows.map(r => ({...r, lastActive: r.last_active || r.lastActive || '—'}));
+        DB[t] = rows;
+      } else if (results[i] !== null) {
+        // Table exists but empty — seed it
+        DB[t] = SEED[t];
+        seedTable(t);
+      } else {
+        // Error — fall back to seed data
+        DB[t] = SEED[t];
+      }
+    });
+    // Compute nextIds from loaded data
+    ['customers','orders','invoices','receipts','users'].forEach(t => {
+      const key = t.slice(0,-1); // remove 's'
+      nextIds[key === 'customer' ? 'customer' : key] =
+        (DB[t].length ? Math.max(...DB[t].map(r => r.id)) + 1 : 1);
+    });
+    nextIds.quotation = DB.quotations.length ? Math.max(...DB.quotations.map(r=>r.id))+1 : 1;
+    toast('Connected to database', 'success');
+  } else {
+    // Offline mode — load seed data and persist in localStorage
+    const tables = ['customers','orders','quotations','invoices','receipts','users'];
+    tables.forEach(t => {
+      try {
+        const stored = localStorage.getItem('vyra_'+t);
+        DB[t] = stored ? JSON.parse(stored) : SEED[t];
+        if (!stored) localStorage.setItem('vyra_'+t, JSON.stringify(SEED[t]));
+      } catch(e) {
+        DB[t] = SEED[t];
+      }
+    });
+    // Recompute nextIds
+    nextIds.customer  = DB.customers.length  ? Math.max(...DB.customers.map(r=>r.id))+1  : 1;
+    nextIds.order     = DB.orders.length     ? Math.max(...DB.orders.map(r=>r.id))+1     : 1;
+    nextIds.quotation = DB.quotations.length ? Math.max(...DB.quotations.map(r=>r.id))+1 : 1;
+    nextIds.invoice   = DB.invoices.length   ? Math.max(...DB.invoices.map(r=>r.id))+1   : 1;
+    nextIds.receipt   = DB.receipts.length   ? Math.max(...DB.receipts.map(r=>r.id))+1   : 1;
+    nextIds.user      = DB.users.length      ? Math.max(...DB.users.map(r=>r.id))+1      : 1;
+    toast('Offline mode — data saved in browser', 'info');
+  }
+  showLoadingOverlay(false);
+}
+
+function saveToBrowser(table) {
+  if (!ONLINE) {
+    try { localStorage.setItem('vyra_'+table, JSON.stringify(DB[table])); } catch(e) {}
+  }
+}
+
+async function seedTable(table) {
+  if (!ONLINE) return;
+  const rows = SEED[table];
+  for (const row of rows) {
+    await sbInsert(table, row);
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   LOADING OVERLAY
+══════════════════════════════════════════════════════ */
+function showLoadingOverlay(show) {
+  let el = document.getElementById('loading-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loading-overlay';
+    el.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:var(--ff)';
+    el.innerHTML = `
+      <div style="width:40px;height:40px;border-radius:50%;border:3px solid var(--bg2);border-top-color:var(--teal);animation:spin .7s linear infinite"></div>
+      <div style="font-size:.85rem;font-weight:600;color:var(--text2)">Loading data…</div>`;
+    const style = document.createElement('style');
+    style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+    document.body.appendChild(el);
+  }
+  el.style.display = show ? 'flex' : 'none';
+}
+
+/* ══════════════════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════════════════ */
 function doLogin(e){
   e.preventDefault();
-  const em = document.getElementById("l-email").value;
-  const pw = document.getElementById("l-pass").value;
+  const em = document.getElementById('l-email').value;
+  const pw = document.getElementById('l-pass').value;
   if(em && pw.length >= 6){
-    document.getElementById("login-page").style.display="none";
-    document.getElementById("admin-app").style.display="flex";
+    document.getElementById('login-page').style.display='none';
+    document.getElementById('admin-app').style.display='flex';
     initApp();
   } else {
-    document.getElementById("login-error").classList.add("show");
+    document.getElementById('login-error').classList.add('show');
   }
 }
 function doLogout(){
-  document.getElementById("admin-app").style.display="none";
-  document.getElementById("login-page").style.display="flex";
+  document.getElementById('admin-app').style.display='none';
+  document.getElementById('login-page').style.display='flex';
 }
 
-// ── SIDEBAR
+/* ══════════════════════════════════════════════════════
+   SIDEBAR / NAV
+══════════════════════════════════════════════════════ */
 function toggleSidebar(){
-  const sb=document.getElementById("sidebar");
-  const icon=document.getElementById("sb-toggle-icon");
-  sb.classList.toggle("collapsed");
-  const col=sb.classList.contains("collapsed");
+  const sb=document.getElementById('sidebar');
+  const icon=document.getElementById('sb-toggle-icon');
+  sb.classList.toggle('collapsed');
+  const col=sb.classList.contains('collapsed');
   icon.innerHTML=col?"<path d='M9 18l6-6-6-6'/>":"<path d='M15 18l-6-6 6-6'/>";
 }
 function openMobSidebar(){
-  document.getElementById("sidebar").classList.add("mob-open");
-  document.getElementById("mob-overlay").classList.add("show");
+  document.getElementById('sidebar').classList.add('mob-open');
+  document.getElementById('mob-overlay').classList.add('show');
 }
 function closeMobSidebar(){
-  document.getElementById("sidebar").classList.remove("mob-open");
-  document.getElementById("mob-overlay").classList.remove("show");
+  document.getElementById('sidebar').classList.remove('mob-open');
+  document.getElementById('mob-overlay').classList.remove('show');
 }
 
-// ── NAVIGATION
-const PAGE_TITLES = {dashboard:"Dashboard",customers:"Customers",orders:"Orders",quotations:"Quotations",invoices:"Invoices & Receipts",reports:"Reports",'site-settings':"Site Settings",users:"Users",roles:"Roles & Permissions"};
-const PAGE_CRUMBS = {dashboard:"Overview",customers:"Client Database",orders:"Order Management",quotations:"Quoting",invoices:"Billing",reports:"Analytics","site-settings":"Content Management",users:"Access Control",roles:"Permissions"};
+const PAGE_TITLES={'dashboard':'Dashboard','customers':'Customers','orders':'Orders','quotations':'Quotations','invoices':'Invoices & Receipts','reports':'Reports','site-settings':'Site Settings','users':'Users','roles':'Roles & Permissions'};
+const PAGE_CRUMBS={'dashboard':'Overview','customers':'Client Database','orders':'Order Management','quotations':'Quoting','invoices':'Billing','reports':'Analytics','site-settings':'Content Management','users':'Access Control','roles':'Permissions'};
 
 function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.querySelectorAll(".sb-link").forEach(l=>l.classList.remove("active"));
-  document.getElementById("page-"+id)?.classList.add("active");
-  document.getElementById("sl-"+id)?.classList.add("active");
-  document.getElementById("tb-title").textContent = PAGE_TITLES[id]||id;
-  document.getElementById("tb-crumb").textContent = PAGE_CRUMBS[id]||id;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.getElementById('sl-'+id)?.classList.add('active');
+  document.getElementById('tb-title').textContent=PAGE_TITLES[id]||id;
+  document.getElementById('tb-crumb').textContent=PAGE_CRUMBS[id]||id;
   closeMobSidebar();
-  // Refresh page data
-  if(id==="dashboard") renderDashboard();
-  if(id==="customers") renderCustomers();
-  if(id==="orders") renderOrders();
-  if(id==="quotations") renderQuotations();
-  if(id==="invoices") renderInvoices();
-  if(id==="users") renderUsers();
-  if(id==="roles") renderRoles();
+  if(id==='dashboard')   renderDashboard();
+  if(id==='customers')   renderCustomers();
+  if(id==='orders')      renderOrders();
+  if(id==='quotations')  renderQuotations();
+  if(id==='invoices')    renderInvoices();
+  if(id==='users')       renderUsers();
+  if(id==='roles')       renderRoles();
 }
 
-// ── MODALS
+/* ══════════════════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════════════════ */
 function openModal(id){
-  document.getElementById(id).classList.add("open");
-  if(id==="order-modal"||id==="quotation-modal"||id==="invoice-modal"||id==="receipt-modal") populateCustomerSelects();
-  if(id==="invoice-modal") populateOrderSelect();
-  if(id==="receipt-modal"){
+  document.getElementById(id).classList.add('open');
+  if(['order-modal','quotation-modal','invoice-modal','receipt-modal'].includes(id)) populateCustomerSelects();
+  if(id==='invoice-modal'){
+    populateOrderSelect();
+    var due=new Date();due.setDate(due.getDate()+30);
+    var dueEl=document.getElementById('im-due');
+    if(dueEl&&!dueEl.value)dueEl.value=due.toISOString().split('T')[0];
+  }
+  if(id==='receipt-modal'){
     populateInvoiceSelect();
-    // Pre-fill today's date
-    var today = new Date().toISOString().split("T")[0];
-    var dateEl = document.getElementById("rm-date");
-    if(dateEl && !dateEl.value) dateEl.value = today;
+    var today=new Date().toISOString().split('T')[0];
+    var dateEl=document.getElementById('rm-date');
+    if(dateEl&&!dateEl.value)dateEl.value=today;
   }
-  if(id==="invoice-modal"){
-    // Pre-fill due date 30 days from today
-    var due = new Date(); due.setDate(due.getDate()+30);
-    var dueEl = document.getElementById("im-due");
-    if(dueEl && !dueEl.value) dueEl.value = due.toISOString().split("T")[0];
-  }
-  if(id==="quotation-modal") initQuotationModal();
+  if(id==='quotation-modal') initQuotationModal();
 }
 function closeModal(id){
-  document.getElementById(id).classList.remove("open");
+  document.getElementById(id).classList.remove('open');
   clearErrors();
-  if(id==="customer-modal"){
-    document.getElementById("cm-id").value="";
-    document.getElementById("customer-modal-title").textContent="Add Customer";
-  }
-  if(id==="order-modal"){
-    document.getElementById("om-id").value="";
-    document.getElementById("order-modal-title").textContent="New Order";
-  }
-  if(id==="receipt-modal"){
-    var dateEl=document.getElementById("rm-date");
-    if(dateEl) dateEl.value="";
-    var amtEl=document.getElementById("rm-amount");
-    if(amtEl) amtEl.value="";
-  }
-  if(id==="invoice-modal"){
-    var dueEl=document.getElementById("im-due");
-    if(dueEl) dueEl.value="";
-    var amtEl2=document.getElementById("im-amount");
-    if(amtEl2) amtEl2.value="";
-  }
+  if(id==='customer-modal'){document.getElementById('cm-id').value='';document.getElementById('customer-modal-title').textContent='Add Customer';}
+  if(id==='order-modal'){document.getElementById('om-id').value='';document.getElementById('order-modal-title').textContent='New Order';}
+  if(id==='receipt-modal'){var d=document.getElementById('rm-date');if(d)d.value='';var a=document.getElementById('rm-amount');if(a)a.value='';}
+  if(id==='invoice-modal'){var d2=document.getElementById('im-due');if(d2)d2.value='';var a2=document.getElementById('im-amount');if(a2)a2.value='';}
 }
 function openConfirm(msg,cb){
-  document.getElementById("confirm-msg").textContent=msg;
-  document.getElementById("confirm-delete").classList.add("open");
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-delete').classList.add('open');
   deleteCallback=cb;
 }
-function closeConfirm(){document.getElementById("confirm-delete").classList.remove("open");deleteCallback=null}
+function closeConfirm(){document.getElementById('confirm-delete').classList.remove('open');deleteCallback=null;}
 function execDelete(){if(deleteCallback)deleteCallback();closeConfirm();}
-function clearErrors(){document.querySelectorAll(".form-group.err").forEach(g=>g.classList.remove("err"))}
+function clearErrors(){document.querySelectorAll('.form-group.err').forEach(g=>g.classList.remove('err'));}
+let deleteCallback=null;
 
-// ── TOAST
-function toast(msg,type="success"){
-  const t=document.getElementById("toast");
-  const el=document.createElement("div");
-  const colors={success:"var(--green)",error:"var(--red)",info:"var(--teal)"};
+/* ══════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════ */
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  const el=document.createElement('div');
+  const colors={success:'var(--green)',error:'var(--red)',info:'var(--teal)'};
   el.style.cssText=`background:var(--surface);border:1px solid var(--border);border-left:3px solid ${colors[type]||colors.success};border-radius:8px;padding:12px 16px;font-size:.82rem;font-weight:500;color:var(--text);box-shadow:0 4px 16px rgba(25,34,74,.15);pointer-events:all;max-width:300px;animation:fadeUp .3s ease`;
   el.textContent=msg;
   t.appendChild(el);
-  setTimeout(()=>{el.style.opacity="0";el.style.transition="opacity .3s";setTimeout(()=>el.remove(),300)},3000);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300)},3000);
 }
-// inject fadeUp keyframe
-const styleEl=document.createElement("style");
-styleEl.textContent="@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}";
-document.head.appendChild(styleEl);
+const _toastStyle=document.createElement('style');
+_toastStyle.textContent='@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}';
+document.head.appendChild(_toastStyle);
 
-// ── HELPERS
-function fmtCurrency(n){return "EGP "+Number(n).toLocaleString("en-EG",{minimumFractionDigits:0,maximumFractionDigits:0})}
-function fmtDate(d){return new Date(d).toLocaleDateString("en-EG",{day:"2-digit",month:"short",year:"numeric"})}
+/* ══════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════ */
+function fmtCurrency(n){return'EGP '+Number(n).toLocaleString('en-EG',{minimumFractionDigits:0,maximumFractionDigits:0})}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-EG',{day:'2-digit',month:'short',year:'numeric'})}
+function genNum(prefix,n){return prefix+'-'+String(n).padStart(3,'0')}
 function getCustomer(id){return DB.customers.find(c=>c.id===id)}
 function getOrder(id){return DB.orders.find(o=>o.id===id)}
 function getInvoice(id){return DB.invoices.find(i=>i.id===id)}
 function getRole(id){return DB.roles.find(r=>r.id===id)}
 function getRoleName(id){const r=getRole(id);return r?r.name:'Unknown'}
 function getRoleBadgeColor(id){
-  const colors={1:'badge-navy',2:'badge-teal',3:'badge-purple',4:'badge-blue'};
-  const r=getRole(id);
-  if(!r)return 'badge-gray';
   const idx=DB.roles.findIndex(x=>x.id===id);
-  const cls=['badge-navy','badge-teal','badge-purple','badge-blue','badge-amber','badge-green'];
-  return cls[idx%cls.length]||'badge-gray';
+  return ['badge-navy','badge-teal','badge-purple','badge-blue','badge-amber','badge-green'][idx%6]||'badge-gray';
 }
 function populateRoleSelect(){
-  const el=document.getElementById('um-role');
-  if(!el)return;
+  const el=document.getElementById('um-role');if(!el)return;
   el.innerHTML=DB.roles.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
 }
 
-const STATUS_BADGE = {
+const STATUS_BADGE={
   quotation:'<span class="badge badge-amber"><span class="badge-dot" style="background:#f59e0b"></span>Quotation</span>',
   approved:'<span class="badge badge-blue"><span class="badge-dot" style="background:#3b82f6"></span>Approved</span>',
   in_progress:'<span class="badge badge-purple"><span class="badge-dot" style="background:#8b5cf6"></span>In Progress</span>',
@@ -1866,230 +2026,280 @@ const STATUS_BADGE = {
   paid:'<span class="badge badge-green"><span class="badge-dot" style="background:#22c55e"></span>Paid</span>',
   active:'<span class="badge badge-green">Active</span>',
   inactive:'<span class="badge badge-gray">Inactive</span>',
-  admin:'<span class="badge badge-navy">Admin</span>',
-  user:'<span class="badge badge-teal">User</span>',
 };
+const METHOD_LABELS={cash:'Cash',bank_transfer:'Bank Transfer',check:'Check',card:'Card'};
 
-const METHOD_LABELS = {cash:"Cash",bank_transfer:"Bank Transfer",check:"Check",card:"Card"};
-
-// ── DASHBOARD
+/* ══════════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════════ */
 function renderDashboard(){
-  document.getElementById("dash-clients").textContent = DB.customers.length;
-  document.getElementById("dash-orders").textContent = DB.orders.length;
-  document.getElementById("dash-revenue").textContent = fmtCurrency(DB.invoices.filter(i=>i.status==="paid").reduce((s,i)=>s+i.amount,0));
-  document.getElementById("dash-invoices").textContent = DB.invoices.filter(i=>i.status!=="paid").length;
-  document.getElementById("sb-customers-count").textContent = DB.customers.length;
-  document.getElementById("sb-orders-count").textContent = DB.orders.length;
-
-  // Recent orders table
-  const tbody = document.getElementById("dash-orders-table");
-  tbody.innerHTML = DB.orders.slice(0,5).map(o=>{
+  document.getElementById('dash-clients').textContent=DB.customers.length;
+  document.getElementById('dash-orders').textContent=DB.orders.length;
+  document.getElementById('dash-revenue').textContent=fmtCurrency(DB.invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+i.amount,0));
+  document.getElementById('dash-invoices').textContent=DB.invoices.filter(i=>i.status!=='paid').length;
+  document.getElementById('sb-customers-count').textContent=DB.customers.length;
+  document.getElementById('sb-orders-count').textContent=DB.orders.length;
+  const tbody=document.getElementById('dash-orders-table');
+  tbody.innerHTML=DB.orders.slice(0,5).map(o=>{
     const c=getCustomer(o.customer_id);
-    return `<tr>
-      <td class="td-mono">${o.num}</td>
-      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
-      <td>${STATUS_BADGE[o.status]||o.status}</td>
-      <td class="td-mono">${fmtCurrency(o.amount)}</td>
-      <td class="td-light">${fmtDate(o.created)}</td>
-    </tr>`;
-  }).join("");
-
-  // Pipeline stats
-  const pipeline = ["quotation","approved","in_progress","completed"];
-  const COLORS = {quotation:"var(--amber)",approved:"var(--blue)",in_progress:"var(--purple)",completed:"var(--green)"};
-  const LABELS = {quotation:"Quotation",approved:"Approved",in_progress:"In Progress",completed:"Completed"};
-  document.getElementById("pipeline-stats").innerHTML = pipeline.map(s=>{
-    const cnt = DB.orders.filter(o=>o.status===s).length;
-    const pct = Math.round((cnt/DB.orders.length)*100)||0;
-    return `<div>
-      <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px">
-        <span style="font-weight:600;color:var(--text2)">${LABELS[s]}</span>
-        <span style="font-weight:700;color:${COLORS[s]}">${cnt} orders</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${COLORS[s]}"></div></div>
-    </div>`;
-  }).join("");
+    return`<tr><td class="td-mono">${o.num}</td><td><div style="font-weight:600">${c?.name||'—'}</div></td><td>${STATUS_BADGE[o.status]||o.status}</td><td class="td-mono">${fmtCurrency(o.amount)}</td><td class="td-light">${fmtDate(o.created)}</td></tr>`;
+  }).join('');
+  const PIPE_COLORS={quotation:'var(--amber)',approved:'var(--blue)',in_progress:'var(--purple)',completed:'var(--green)'};
+  const PIPE_LABELS={quotation:'Quotation',approved:'Approved',in_progress:'In Progress',completed:'Completed'};
+  document.getElementById('pipeline-stats').innerHTML=['quotation','approved','in_progress','completed'].map(s=>{
+    const cnt=DB.orders.filter(o=>o.status===s).length;
+    const pct=Math.round((cnt/Math.max(DB.orders.length,1))*100);
+    return`<div><div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px"><span style="font-weight:600;color:var(--text2)">${PIPE_LABELS[s]}</span><span style="font-weight:700;color:${PIPE_COLORS[s]}">${cnt} orders</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${PIPE_COLORS[s]}"></div></div></div>`;
+  }).join('');
 }
 
-// ── CUSTOMERS
-function renderCustomers(filter=""){
-  const list = filter ? DB.customers.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase())||c.email?.toLowerCase().includes(filter.toLowerCase())||c.phone?.includes(filter)) : DB.customers;
-  const tbody=document.getElementById("customers-table");
-  tbody.innerHTML = list.length ? list.map(c=>{
-    const orderCount = DB.orders.filter(o=>o.customer_id===c.id).length;
-    return `<tr>
-      <td><div style="display:flex;align-items:center;gap:10px">
-        <div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--navy2));font-size:.72rem">${c.name[0]}</div>
-        <div><div style="font-weight:600">${c.name}</div></div>
-      </div></td>
-      <td class="td-light">${c.contact||"—"}</td>
-      <td class="td-mono">${c.phone||"—"}</td>
-      <td class="td-light">${c.email||"—"}</td>
+/* ══════════════════════════════════════════════════════
+   CUSTOMERS
+══════════════════════════════════════════════════════ */
+function renderCustomers(filter=''){
+  const list=filter?DB.customers.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase())||c.email?.toLowerCase().includes(filter.toLowerCase())||c.phone?.includes(filter)):DB.customers;
+  const tbody=document.getElementById('customers-table');
+  tbody.innerHTML=list.length?list.map(c=>{
+    const orderCount=DB.orders.filter(o=>o.customer_id===c.id).length;
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--navy2))">${c.name[0]}</div><div><div style="font-weight:600">${c.name}</div></div></div></td>
+      <td class="td-light">${c.contact||'—'}</td>
+      <td class="td-mono">${c.phone||'—'}</td>
+      <td class="td-light">${c.email||'—'}</td>
       <td><span class="badge badge-teal">${orderCount} orders</span></td>
       <td class="td-light">${fmtDate(c.created)}</td>
-      <td>
-        <div style="display:flex;gap:4px">
-          <button class="btn-icon" onclick="editCustomer(${c.id})" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="btn-icon" onclick="deleteCustomer(${c.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
-      </td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn-icon" onclick="editCustomer(${c.id})" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn-icon" onclick="deleteCustomer(${c.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="empty-title">No customers found</div></div></td></tr>`;
-  document.getElementById("customers-count-label").textContent = `${list.length} of ${DB.customers.length} customers`;
+  }).join(''):`<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No customers found</div></div></td></tr>`;
+  document.getElementById('customers-count-label').textContent=`${list.length} of ${DB.customers.length} customers`;
 }
 function filterCustomers(v){renderCustomers(v)}
 function editCustomer(id){
-  const c=DB.customers.find(x=>x.id===id);
-  if(!c)return;
-  document.getElementById("customer-modal-title").textContent="Edit Customer";
-  document.getElementById("cm-id").value=id;
-  document.getElementById("cm-name").value=c.name;
-  document.getElementById("cm-contact").value=c.contact||"";
-  document.getElementById("cm-phone").value=c.phone||"";
-  document.getElementById("cm-email").value=c.email||"";
-  document.getElementById("cm-address").value=c.address||"";
-  openModal("customer-modal");
+  const c=DB.customers.find(x=>x.id===id);if(!c)return;
+  document.getElementById('customer-modal-title').textContent='Edit Customer';
+  document.getElementById('cm-id').value=id;
+  document.getElementById('cm-name').value=c.name;
+  document.getElementById('cm-contact').value=c.contact||'';
+  document.getElementById('cm-phone').value=c.phone||'';
+  document.getElementById('cm-email').value=c.email||'';
+  document.getElementById('cm-address').value=c.address||'';
+  openModal('customer-modal');
 }
-function saveCustomer(){
-  const name=document.getElementById("cm-name").value.trim();
-  if(!name){document.getElementById("fg-cm-name").classList.add("err");return}
-  const id=parseInt(document.getElementById("cm-id").value)||0;
-  const data={name,contact:document.getElementById("cm-contact").value,phone:document.getElementById("cm-phone").value,email:document.getElementById("cm-email").value,address:document.getElementById("cm-address").value};
+async function saveCustomer(){
+  const name=document.getElementById('cm-name').value.trim();
+  if(!name){document.getElementById('fg-cm-name').classList.add('err');return;}
+  const id=parseInt(document.getElementById('cm-id').value)||0;
+  const data={name,contact:document.getElementById('cm-contact').value,phone:document.getElementById('cm-phone').value,email:document.getElementById('cm-email').value,address:document.getElementById('cm-address').value};
   if(id){
     const idx=DB.customers.findIndex(c=>c.id===id);
     DB.customers[idx]={...DB.customers[idx],...data};
-    toast("Customer updated");
-  } else {
-    DB.customers.push({id:nextIds.customer++,...data,created:new Date().toISOString().split("T")[0]});
-    toast("Customer added");
+    await sbUpdate('customers',id,data);
+    saveToBrowser('customers');
+    toast('Customer updated');
+  }else{
+    const newRow={id:nextIds.customer++,...data,created:new Date().toISOString().split('T')[0]};
+    const saved=await sbInsert('customers',newRow);
+    if(saved) newRow.id=saved.id;
+    DB.customers.push(newRow);
+    saveToBrowser('customers');
+    toast('Customer added');
   }
-  closeModal("customer-modal");
-  document.getElementById("cm-id").value="";
-  document.getElementById("customer-modal-title").textContent="Add Customer";
-  ["cm-name","cm-contact","cm-phone","cm-email","cm-address"].forEach(id=>document.getElementById(id).value="");
+  closeModal('customer-modal');
+  ['cm-name','cm-contact','cm-phone','cm-email','cm-address'].forEach(id=>document.getElementById(id).value='');
   renderCustomers();renderDashboard();
 }
-function deleteCustomer(id){
-  openConfirm("Delete this customer and all their records? This cannot be undone.",()=>{
+async function deleteCustomer(id){
+  openConfirm('Delete this customer and all their records?',async()=>{
+    await sbDelete('customers',id);
     DB.customers=DB.customers.filter(c=>c.id!==id);
-    renderCustomers();renderDashboard();toast("Customer deleted","error");
+    saveToBrowser('customers');
+    renderCustomers();renderDashboard();toast('Customer deleted','error');
   });
 }
 
-// ── ORDERS
-const ORDER_PIPE_LABELS={quotation:"Quotation",approved:"Approved",in_progress:"In Progress",completed:"Completed"};
-const ORDER_PIPE_COLORS={quotation:"#f59e0b",approved:"#3b82f6",in_progress:"#8b5cf6",completed:"#22c55e"};
-function renderOrders(filter="",statusF=""){
-  let list = DB.orders;
-  if(filter) list=list.filter(o=>o.num.toLowerCase().includes(filter.toLowerCase())||(getCustomer(o.customer_id)?.name||"").toLowerCase().includes(filter.toLowerCase()));
-  if(statusF) list=list.filter(o=>o.status===statusF);
+/* ══════════════════════════════════════════════════════
+   ORDERS
+══════════════════════════════════════════════════════ */
+let orderFilterStatus='';
+const ORDER_LABELS={quotation:'Quotation',approved:'Approved',in_progress:'In Progress',completed:'Completed'};
+const ORDER_COLORS={quotation:'#f59e0b',approved:'#3b82f6',in_progress:'#8b5cf6',completed:'#22c55e'};
 
-  // Pipeline cards
-  document.getElementById("order-pipeline-cards").innerHTML = ["quotation","approved","in_progress","completed"].map(s=>{
+function renderOrders(filter='',statusF=''){
+  let list=DB.orders;
+  if(filter)list=list.filter(o=>o.num.toLowerCase().includes(filter.toLowerCase())||(getCustomer(o.customer_id)?.name||'').toLowerCase().includes(filter.toLowerCase()));
+  if(statusF)list=list.filter(o=>o.status===statusF);
+  document.getElementById('order-pipeline-cards').innerHTML=['quotation','approved','in_progress','completed'].map(s=>{
     const cnt=DB.orders.filter(o=>o.status===s).length;
     const active=statusF===s;
-    return `<div class="card" style="padding:14px;cursor:pointer;border:2px solid ${active?ORDER_PIPE_COLORS[s]:"var(--border)"};transition:all .2s" onclick="setOrderFilter('${s}')">
-      <div style="font-size:1.4rem;font-weight:900;color:${ORDER_PIPE_COLORS[s]}">${cnt}</div>
-      <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${ORDER_PIPE_LABELS[s]}</div>
-    </div>`;
-  }).join("");
-
-  const tbody=document.getElementById("orders-table");
-  tbody.innerHTML = list.length ? list.map(o=>{
+    return`<div class="card" style="padding:14px;cursor:pointer;border:2px solid ${active?ORDER_COLORS[s]:'var(--border)'}" onclick="setOrderFilter('${s}')"><div style="font-size:1.4rem;font-weight:900;color:${ORDER_COLORS[s]}">${cnt}</div><div style="font-size:.72rem;color:var(--text3)">${ORDER_LABELS[s]}</div></div>`;
+  }).join('');
+  const tbody=document.getElementById('orders-table');
+  tbody.innerHTML=list.length?list.map(o=>{
     const c=getCustomer(o.customer_id);
-    const nextStatus={quotation:"approved",approved:"in_progress",in_progress:"completed"};
-    const ns=nextStatus[o.status];
-    return `<tr>
+    const ns={quotation:'approved',approved:'in_progress',in_progress:'completed'}[o.status];
+    return`<tr>
       <td class="td-mono" style="color:var(--teal);font-weight:700">${o.num}</td>
-      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
-      <td class="td-light" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.desc||"—"}</td>
+      <td><div style="font-weight:600">${c?.name||'—'}</div></td>
+      <td class="td-light" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.desc||'—'}</td>
       <td>${STATUS_BADGE[o.status]||o.status}</td>
       <td class="td-mono">${fmtCurrency(o.amount)}</td>
       <td class="td-light">${fmtDate(o.created)}</td>
-      <td>
-        <div style="display:flex;gap:4px;flex-wrap:wrap">
-          ${ns?`<button class="btn btn-outline btn-sm" onclick="advanceOrder(${o.id})" style="font-size:.65rem;padding:3px 8px">&rarr; ${ORDER_PIPE_LABELS[ns]}</button>`:""}
-          <button class="btn-icon" onclick="editOrder(${o.id})" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="btn-icon" onclick="deleteOrder(${o.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
-      </td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+        ${ns?`<button class="btn btn-outline btn-sm" onclick="advanceOrder(${o.id})" style="font-size:.65rem;padding:3px 8px">&rarr; ${ORDER_LABELS[ns]}</button>`:''}
+        <button class="btn-icon" onclick="editOrder(${o.id})" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn-icon" onclick="deleteOrder(${o.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No orders found</div></div></td></tr>`;
-  document.getElementById("orders-count-label").textContent=`${list.length} orders shown`;
+  }).join(''):`<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No orders found</div></div></td></tr>`;
+  document.getElementById('orders-count-label').textContent=`${list.length} orders shown`;
 }
 function filterOrders(v){renderOrders(v,orderFilterStatus)}
-function filterOrderStatus(v){orderFilterStatus=v;renderOrders(document.getElementById("order-search").value,v)}
+function filterOrderStatus(v){orderFilterStatus=v;renderOrders(document.getElementById('order-search').value,v)}
 function setOrderFilter(s){
-  orderFilterStatus=orderFilterStatus===s?"":s;
-  document.getElementById("order-status-filter").value=orderFilterStatus;
-  renderOrders("",orderFilterStatus);
+  orderFilterStatus=orderFilterStatus===s?'':s;
+  document.getElementById('order-status-filter').value=orderFilterStatus;
+  renderOrders('',orderFilterStatus);
 }
-function advanceOrder(id){
+async function advanceOrder(id){
   const o=DB.orders.find(x=>x.id===id);
-  const next={quotation:"approved",approved:"in_progress",in_progress:"completed"};
-  if(o&&next[o.status]){o.status=next[o.status];renderOrders("",orderFilterStatus);renderDashboard();toast("Order status updated");}
+  const next={quotation:'approved',approved:'in_progress',in_progress:'completed'};
+  if(o&&next[o.status]){
+    o.status=next[o.status];
+    await sbUpdate('orders',id,{status:o.status});
+    saveToBrowser('orders');
+    renderOrders('',orderFilterStatus);renderDashboard();toast('Order status updated');
+  }
 }
 function editOrder(id){
   const o=DB.orders.find(x=>x.id===id);if(!o)return;
   populateCustomerSelects();
-  openModal("order-modal");
-  document.getElementById("order-modal-title").textContent="Edit Order";
-  document.getElementById("om-id").value=id;
-  document.getElementById("om-customer").value=o.customer_id;
-  document.getElementById("om-status").value=o.status;
-  document.getElementById("om-amount").value=o.amount;
-  document.getElementById("om-desc").value=o.desc||"";
-  document.getElementById("om-service").value=o.service||"";
+  openModal('order-modal');
+  document.getElementById('order-modal-title').textContent='Edit Order';
+  document.getElementById('om-id').value=id;
+  document.getElementById('om-customer').value=o.customer_id;
+  document.getElementById('om-status').value=o.status;
+  document.getElementById('om-amount').value=o.amount;
+  document.getElementById('om-desc').value=o.desc||'';
+  document.getElementById('om-service').value=o.service||'';
 }
-function saveOrder(){
-  const custId=parseInt(document.getElementById("om-customer").value);
-  if(!custId){document.getElementById("fg-om-customer").classList.add("err");return}
-  const id=parseInt(document.getElementById("om-id").value)||0;
-  const data={customer_id:custId,status:document.getElementById("om-status").value,amount:parseFloat(document.getElementById("om-amount").value)||0,desc:document.getElementById("om-desc").value,service:document.getElementById("om-service").value};
-  if(id){const idx=DB.orders.findIndex(o=>o.id===id);DB.orders[idx]={...DB.orders[idx],...data};toast("Order updated");}
-  else{DB.orders.push({id:nextIds.order,num:genNum("ORD",nextIds.order++),created:new Date().toISOString().split("T")[0],...data});toast("Order created");}
-  closeModal("order-modal");
-  document.getElementById("om-id").value="";
-  document.getElementById("order-modal-title").textContent="New Order";
-  renderOrders("",orderFilterStatus);renderDashboard();
+async function saveOrder(){
+  const custId=parseInt(document.getElementById('om-customer').value);
+  if(!custId){document.getElementById('fg-om-customer').classList.add('err');return;}
+  const id=parseInt(document.getElementById('om-id').value)||0;
+  const desc_val=document.getElementById('om-desc').value;
+  const data={customer_id:custId,status:document.getElementById('om-status').value,amount:parseFloat(document.getElementById('om-amount').value)||0,desc:desc_val,description:desc_val,service:document.getElementById('om-service').value};
+  if(id){
+    const idx=DB.orders.findIndex(o=>o.id===id);
+    DB.orders[idx]={...DB.orders[idx],...data};
+    await sbUpdate('orders',id,data);
+    saveToBrowser('orders');
+    toast('Order updated');
+  }else{
+    const num=genNum('ORD',nextIds.order);
+    const newRow={id:nextIds.order++,num,...data,created:new Date().toISOString().split('T')[0]};
+    const saved=await sbInsert('orders',newRow);
+    if(saved) newRow.id=saved.id;
+    DB.orders.push(newRow);
+    saveToBrowser('orders');
+    toast('Order created');
+  }
+  closeModal('order-modal');
+  document.getElementById('order-modal-title').textContent='New Order';
+  renderOrders('',orderFilterStatus);renderDashboard();
 }
-function deleteOrder(id){openConfirm("Delete this order?",()=>{DB.orders=DB.orders.filter(o=>o.id!==id);renderOrders("",orderFilterStatus);renderDashboard();toast("Deleted","error")})}
+async function deleteOrder(id){
+  openConfirm('Delete this order?',async()=>{
+    await sbDelete('orders',id);
+    DB.orders=DB.orders.filter(o=>o.id!==id);
+    saveToBrowser('orders');
+    renderOrders('',orderFilterStatus);renderDashboard();toast('Deleted','error');
+  });
+}
 
-// ── QUOTATIONS
-function renderQuotations(filter=""){
+/* ══════════════════════════════════════════════════════
+   QUOTATIONS
+══════════════════════════════════════════════════════ */
+let lineItems=[];
+function renderQuotations(filter=''){
   let list=DB.quotations;
-  if(filter)list=list.filter(q=>q.num.toLowerCase().includes(filter.toLowerCase())||(getCustomer(q.customer_id)?.name||"").toLowerCase().includes(filter.toLowerCase()));
-  const tbody=document.getElementById("quotations-table");
-  tbody.innerHTML=list.length?list.map(q=>{
+  if(filter)list=list.filter(q=>q.num.toLowerCase().includes(filter.toLowerCase())||(getCustomer(q.customer_id)?.name||'').toLowerCase().includes(filter.toLowerCase()));
+  document.getElementById('quotations-table').innerHTML=list.length?list.map(q=>{
     const c=getCustomer(q.customer_id);
-    return `<tr>
+    return`<tr>
       <td class="td-mono" style="color:var(--teal);font-weight:700">${q.num}</td>
-      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
-      <td><span class="badge badge-teal">${q.items.length} items</span></td>
-      <td class="td-mono">${fmtCurrency(q.mat)}</td>
-      <td class="td-mono">${fmtCurrency(q.lab)}</td>
-      <td class="td-mono" style="font-weight:700;color:var(--teal)">${fmtCurrency(q.total)}</td>
-      <td class="td-light">${q.valid?fmtDate(q.valid):"—"}</td>
-      <td>
-        <div style="display:flex;gap:4px">
-          <button class="btn-icon" onclick="viewQuotation(${q.id})" title="View"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-          <button class="btn-icon" onclick="deleteQuotation(${q.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
-      </td>
+      <td><div style="font-weight:600">${c?.name||'—'}</div></td>
+      <td><span class="badge badge-teal">${(q.items||[]).length} items</span></td>
+      <td class="td-mono">${fmtCurrency(q.mat||0)}</td>
+      <td class="td-mono">${fmtCurrency(q.lab||0)}</td>
+      <td class="td-mono" style="font-weight:700;color:var(--teal)">${fmtCurrency(q.total||0)}</td>
+      <td class="td-light">${q.valid?fmtDate(q.valid):'—'}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn-icon" onclick="viewQuotation(${q.id})" title="View"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button class="btn-icon" onclick="deleteQuotation(${q.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="8"><div class="empty-state"><div class="empty-title">No quotations found</div></div></td></tr>`;
-  document.getElementById("quotations-count-label").textContent=`${list.length} quotations`;
+  }).join(''):`<tr><td colspan="8"><div class="empty-state"><div class="empty-title">No quotations</div></div></td></tr>`;
+  document.getElementById('quotations-count-label').textContent=`${list.length} quotations`;
 }
 function filterQuotations(v){renderQuotations(v)}
+function initQuotationModal(){
+  populateCustomerSelects();
+  document.getElementById('qm-customer').value='';
+  document.getElementById('qm-valid').value='';
+  document.getElementById('qm-notes').value='';
+  lineItems=[{desc:'',type:'material',qty:1,price:0,total:0}];
+  renderLineItems();
+}
+function addLineItem(){lineItems.push({desc:'',type:'material',qty:1,price:0,total:0});renderLineItems();}
+function removeLineItem(i){if(lineItems.length>1){lineItems.splice(i,1);renderLineItems();}}
+function updateLineItem(i,field,val){
+  lineItems[i][field]=field==='type'||field==='desc'?val:parseFloat(val)||0;
+  if(field!=='desc'&&field!=='type')lineItems[i].total=(lineItems[i].qty||0)*(lineItems[i].price||0);
+  renderLineItems();
+}
+function renderLineItems(){
+  const mat=lineItems.filter(i=>i.type==='material').reduce((s,i)=>s+i.total,0);
+  const lab=lineItems.filter(i=>i.type==='labor').reduce((s,i)=>s+i.total,0);
+  document.getElementById('q-mat-total').textContent=fmtCurrency(mat);
+  document.getElementById('q-lab-total').textContent=fmtCurrency(lab);
+  document.getElementById('q-grand-total').textContent=fmtCurrency(mat+lab);
+  document.getElementById('line-items-body').innerHTML=lineItems.map((item,i)=>`
+    <tr>
+      <td><input class="form-ctrl" value="${item.desc}" oninput="updateLineItem(${i},'desc',this.value)" placeholder="Description..."/></td>
+      <td><select class="form-ctrl" onchange="updateLineItem(${i},'type',this.value)"><option value="material" ${item.type==='material'?'selected':''}>Material</option><option value="labor" ${item.type==='labor'?'selected':''}>Labor</option></select></td>
+      <td><input class="form-ctrl" type="number" min="0" value="${item.qty}" oninput="updateLineItem(${i},'qty',this.value)"/></td>
+      <td><input class="form-ctrl" type="number" min="0" step="0.01" value="${item.price}" oninput="updateLineItem(${i},'price',this.value)"/></td>
+      <td style="text-align:right;padding:6px 10px;font-weight:700;font-size:.82rem;color:var(--teal)">${fmtCurrency(item.total)}</td>
+      <td><button class="btn-icon" onclick="removeLineItem(${i})" ${lineItems.length===1?'disabled':''} style="color:var(--red);border-color:transparent"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></td>
+    </tr>`).join('');
+}
+async function saveQuotation(){
+  const custId=parseInt(document.getElementById('qm-customer').value);
+  if(!custId){document.getElementById('fg-qm-customer').classList.add('err');return;}
+  const mat=lineItems.filter(i=>i.type==='material').reduce((s,i)=>s+i.total,0);
+  const lab=lineItems.filter(i=>i.type==='labor').reduce((s,i)=>s+i.total,0);
+  const newRow={id:nextIds.quotation,num:genNum('Q',nextIds.quotation++),customer_id:custId,items:JSON.stringify(lineItems),mat,lab,total:mat+lab,valid:document.getElementById('qm-valid').value||null,notes:document.getElementById('qm-notes').value,created:new Date().toISOString().split('T')[0]};
+  const saved=await sbInsert('quotations',newRow);
+  if(saved) newRow.id=saved.id;
+  // Store items as array locally
+  newRow.items=lineItems.map(i=>({...i}));
+  DB.quotations.push(newRow);
+  saveToBrowser('quotations');
+  closeModal('quotation-modal');renderQuotations();toast('Quotation created');
+}
 function viewQuotation(id){
   const q=DB.quotations.find(x=>x.id===id);if(!q)return;
   const c=getCustomer(q.customer_id);
-  document.getElementById("vqm-title").textContent=`Quotation: ${q.num}`;
-  document.getElementById("vqm-body").innerHTML=`
+  const items=typeof q.items==='string'?JSON.parse(q.items):q.items;
+  document.getElementById('vqm-title').textContent=`Quotation: ${q.num}`;
+  document.getElementById('vqm-body').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-      <div class="kv-row" style="padding:6px 0"><span class="kv-key">Client</span><span class="kv-val">${c?.name||"—"}</span></div>
+      <div class="kv-row" style="padding:6px 0"><span class="kv-key">Client</span><span class="kv-val">${c?.name||'—'}</span></div>
       <div class="kv-row" style="padding:6px 0"><span class="kv-key">Date</span><span class="kv-val">${fmtDate(q.created)}</span></div>
-      ${q.valid?`<div class="kv-row" style="padding:6px 0"><span class="kv-key">Valid Until</span><span class="kv-val">${fmtDate(q.valid)}</span></div>`:""}
+      ${q.valid?`<div class="kv-row" style="padding:6px 0"><span class="kv-key">Valid Until</span><span class="kv-val">${fmtDate(q.valid)}</span></div>`:''}
     </div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
       <thead style="background:var(--bg)"><tr>
@@ -2099,340 +2309,311 @@ function viewQuotation(id){
         <th style="padding:8px 10px;text-align:right;font-size:.68rem;font-weight:700;color:var(--text3)">Unit</th>
         <th style="padding:8px 10px;text-align:right;font-size:.68rem;font-weight:700;color:var(--text3)">Total</th>
       </tr></thead>
-      <tbody>${q.items.map(i=>`
-        <tr style="border-top:1px solid var(--border)">
-          <td style="padding:9px 10px;font-size:.82rem">${i.desc}</td>
-          <td style="padding:9px 10px;text-align:center"><span class="badge ${i.type==="material"?"badge-blue":"badge-teal"}">${i.type}</span></td>
-          <td style="padding:9px 10px;text-align:right;font-size:.82rem">${i.qty}</td>
-          <td style="padding:9px 10px;text-align:right;font-size:.82rem;font-family:monospace">${fmtCurrency(i.price)}</td>
-          <td style="padding:9px 10px;text-align:right;font-size:.82rem;font-weight:700;font-family:monospace">${fmtCurrency(i.total)}</td>
-        </tr>`).join("")}
-      </tbody>
+      <tbody>${(items||[]).map(i=>`<tr style="border-top:1px solid var(--border)">
+        <td style="padding:9px 10px;font-size:.82rem">${i.desc}</td>
+        <td style="padding:9px 10px;text-align:center"><span class="badge ${i.type==='material'?'badge-blue':'badge-teal'}">${i.type}</span></td>
+        <td style="padding:9px 10px;text-align:right;font-size:.82rem">${i.qty}</td>
+        <td style="padding:9px 10px;text-align:right;font-size:.82rem;font-family:monospace">${fmtCurrency(i.price)}</td>
+        <td style="padding:9px 10px;text-align:right;font-size:.82rem;font-weight:700;font-family:monospace">${fmtCurrency(i.total)}</td>
+      </tr>`).join('')}</tbody>
     </table>
     <div style="background:var(--bg);border-radius:8px;padding:14px;max-width:280px;margin-left:auto">
-      <div class="kv-row"><span class="kv-key">Materials</span><span class="kv-val td-mono">${fmtCurrency(q.mat)}</span></div>
-      <div class="kv-row"><span class="kv-key">Labor</span><span class="kv-val td-mono">${fmtCurrency(q.lab)}</span></div>
-      <div class="kv-row" style="border-bottom:none;padding-top:8px"><span style="font-weight:800">Grand Total</span><span style="font-weight:900;color:var(--teal);font-family:monospace">${fmtCurrency(q.total)}</span></div>
+      <div class="kv-row"><span class="kv-key">Materials</span><span class="kv-val td-mono">${fmtCurrency(q.mat||0)}</span></div>
+      <div class="kv-row"><span class="kv-key">Labor</span><span class="kv-val td-mono">${fmtCurrency(q.lab||0)}</span></div>
+      <div class="kv-row" style="border-bottom:none;padding-top:8px"><span style="font-weight:800">Grand Total</span><span style="font-weight:900;color:var(--teal);font-family:monospace">${fmtCurrency(q.total||0)}</span></div>
     </div>
-    ${q.notes?`<p style="font-size:.78rem;color:var(--text3);margin-top:12px;font-style:italic">${q.notes}</p>`:""}
-  `;
-  openModal("view-quotation-modal");
+    ${q.notes?`<p style="font-size:.78rem;color:var(--text3);margin-top:12px;font-style:italic">${q.notes}</p>`:''}`;
+  openModal('view-quotation-modal');
 }
-function deleteQuotation(id){openConfirm("Delete this quotation?",()=>{DB.quotations=DB.quotations.filter(q=>q.id!==id);renderQuotations();toast("Deleted","error")})}
-
-// Quotation modal line items
-let lineItems=[];
-function initQuotationModal(){
-  populateCustomerSelects();
-  lineItems=[{desc:"",type:"material",qty:1,price:0,total:0}];
-  document.getElementById("qm-customer").value="";
-  document.getElementById("qm-valid").value="";
-  document.getElementById("qm-notes").value="";
-  renderLineItems();
-}
-function addLineItem(){lineItems.push({desc:"",type:"material",qty:1,price:0,total:0});renderLineItems()}
-function removeLineItem(i){if(lineItems.length>1){lineItems.splice(i,1);renderLineItems()}}
-function updateLineItem(i,field,val){
-  lineItems[i][field]=field==="type"?val:field==="desc"?val:parseFloat(val)||0;
-  if(field!=="desc"&&field!=="type") lineItems[i].total=(lineItems[i].qty||0)*(lineItems[i].price||0);
-  renderLineItems();
-}
-function renderLineItems(){
-  const mat=lineItems.filter(i=>i.type==="material").reduce((s,i)=>s+i.total,0);
-  const lab=lineItems.filter(i=>i.type==="labor").reduce((s,i)=>s+i.total,0);
-  document.getElementById("q-mat-total").textContent=fmtCurrency(mat);
-  document.getElementById("q-lab-total").textContent=fmtCurrency(lab);
-  document.getElementById("q-grand-total").textContent=fmtCurrency(mat+lab);
-  document.getElementById("line-items-body").innerHTML=lineItems.map((item,i)=>`
-    <tr>
-      <td><input class="form-ctrl" value="${item.desc}" oninput="updateLineItem(${i},'desc',this.value)" placeholder="Item description..."/></td>
-      <td><select class="form-ctrl" onchange="updateLineItem(${i},'type',this.value)"><option value="material" ${item.type==="material"?"selected":""}>Material</option><option value="labor" ${item.type==="labor"?"selected":""}>Labor</option></select></td>
-      <td><input class="form-ctrl" type="number" min="0" step="1" value="${item.qty}" oninput="updateLineItem(${i},'qty',this.value)"/></td>
-      <td><input class="form-ctrl" type="number" min="0" step="0.01" value="${item.price}" oninput="updateLineItem(${i},'price',this.value)"/></td>
-      <td style="text-align:right;padding:6px 10px;font-weight:700;font-size:.82rem;color:var(--teal)">${fmtCurrency(item.total)}</td>
-      <td><button class="btn-icon" onclick="removeLineItem(${i})" ${lineItems.length===1?"disabled":""} style="color:var(--red);border-color:transparent"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></td>
-    </tr>`).join("");
-}
-function saveQuotation(){
-  const custId=parseInt(document.getElementById("qm-customer").value);
-  if(!custId){document.getElementById("fg-qm-customer").classList.add("err");return}
-  const mat=lineItems.filter(i=>i.type==="material").reduce((s,i)=>s+i.total,0);
-  const lab=lineItems.filter(i=>i.type==="labor").reduce((s,i)=>s+i.total,0);
-  DB.quotations.push({id:nextIds.quotation,num:genNum("Q",nextIds.quotation++),customer_id:custId,items:[...lineItems],mat,lab,total:mat+lab,valid:document.getElementById("qm-valid").value||null,notes:document.getElementById("qm-notes").value,created:new Date().toISOString().split("T")[0]});
-  closeModal("quotation-modal");renderQuotations();toast("Quotation created");
+async function deleteQuotation(id){
+  openConfirm('Delete this quotation?',async()=>{
+    await sbDelete('quotations',id);
+    DB.quotations=DB.quotations.filter(q=>q.id!==id);
+    saveToBrowser('quotations');
+    renderQuotations();toast('Deleted','error');
+  });
 }
 
-// ── INVOICES
-function renderInvoices(statusF=""){
+/* ══════════════════════════════════════════════════════
+   INVOICES & RECEIPTS
+══════════════════════════════════════════════════════ */
+let currentInvTab='invoices';
+function renderInvoices(statusF=''){
   let invList=DB.invoices;
   if(statusF)invList=invList.filter(i=>i.status===statusF);
-  document.getElementById("inv-unpaid").textContent=DB.invoices.filter(i=>i.status==="unpaid").length;
-  document.getElementById("inv-partial").textContent=DB.invoices.filter(i=>i.status==="partial").length;
-  document.getElementById("inv-paid").textContent=DB.invoices.filter(i=>i.status==="paid").length;
-  const tbody=document.getElementById("invoices-table");
-  tbody.innerHTML=invList.length?invList.map(inv=>{
-    const c=getCustomer(inv.customer_id);
-    const balance=inv.amount-inv.paid;
-    return `<tr>
+  document.getElementById('inv-unpaid').textContent=DB.invoices.filter(i=>i.status==='unpaid').length;
+  document.getElementById('inv-partial').textContent=DB.invoices.filter(i=>i.status==='partial').length;
+  document.getElementById('inv-paid').textContent=DB.invoices.filter(i=>i.status==='paid').length;
+  document.getElementById('invoices-table').innerHTML=invList.length?invList.map(inv=>{
+    const c=getCustomer(inv.customer_id);const balance=inv.amount-inv.paid;
+    return`<tr>
       <td class="td-mono" style="color:var(--teal);font-weight:700">${inv.num}</td>
-      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
+      <td><div style="font-weight:600">${c?.name||'—'}</div></td>
       <td class="td-mono">${fmtCurrency(inv.amount)}</td>
       <td class="td-mono" style="color:var(--green)">${fmtCurrency(inv.paid)}</td>
-      <td class="td-mono" style="color:${balance>0?"var(--red)":"var(--green)"}">${fmtCurrency(balance)}</td>
+      <td class="td-mono" style="color:${balance>0?'var(--red)':'var(--green)'}">${fmtCurrency(balance)}</td>
       <td>${STATUS_BADGE[inv.status]||inv.status}</td>
-      <td class="td-light">${inv.due?fmtDate(inv.due):"—"}</td>
-      <td>
-        <div style="display:flex;gap:4px">
-          ${inv.status!=="paid"?`<button class="btn btn-outline btn-sm" onclick="recordPayment(${inv.id})" style="font-size:.65rem;color:var(--green);border-color:rgba(34,197,94,.3)">+ Payment</button>`:""}
-          <button class="btn-icon" onclick="deleteInvoice(${inv.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
-      </td>
+      <td class="td-light">${inv.due?fmtDate(inv.due):'—'}</td>
+      <td><div style="display:flex;gap:4px">
+        ${inv.status!=='paid'?`<button class="btn btn-outline btn-sm" onclick="recordPayment(${inv.id})" style="font-size:.65rem;color:var(--green);border-color:rgba(34,197,94,.3)">+ Payment</button>`:''}
+        <button class="btn-icon" onclick="deleteInvoice(${inv.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="8"><div class="empty-state"><div class="empty-title">No invoices</div></div></td></tr>`;
-
-  // Receipts
-  const rtbody=document.getElementById("receipts-table");
-  rtbody.innerHTML=DB.receipts.map(r=>{
-    const inv=getInvoice(r.invoice_id);
-    const c=inv?getCustomer(inv.customer_id):null;
-    return `<tr>
+  }).join(''):`<tr><td colspan="8"><div class="empty-state"><div class="empty-title">No invoices</div></div></td></tr>`;
+  document.getElementById('receipts-table').innerHTML=DB.receipts.map(r=>{
+    const inv=getInvoice(r.invoice_id);const c=inv?getCustomer(inv.customer_id):null;
+    return`<tr>
       <td class="td-mono" style="color:var(--teal);font-weight:700">${r.num}</td>
-      <td class="td-mono">${inv?.num||"—"}</td>
-      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
+      <td class="td-mono">${inv?.num||'—'}</td>
+      <td><div style="font-weight:600">${c?.name||'—'}</div></td>
       <td class="td-mono" style="color:var(--green);font-weight:700">${fmtCurrency(r.amount)}</td>
       <td><span class="badge badge-navy">${METHOD_LABELS[r.method]||r.method}</span></td>
       <td class="td-light">${fmtDate(r.date)}</td>
-      <td class="td-light">${r.ref||"—"}</td>
+      <td class="td-light">${r.ref||'—'}</td>
     </tr>`;
-  }).join("") || `<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No receipts</div></div></td></tr>`;
+  }).join('')||`<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No receipts</div></div></td></tr>`;
 }
 function filterInvoiceStatus(v){renderInvoices(v)}
 function switchInvTab(tab){
   currentInvTab=tab;
-  document.getElementById("inv-panel-invoices").style.display=tab==="invoices"?"block":"none";
-  document.getElementById("inv-panel-receipts").style.display=tab==="receipts"?"block":"none";
-  document.getElementById("inv-tab-inv").className=tab==="invoices"?"btn btn-primary btn-sm":"btn btn-ghost btn-sm";
-  document.getElementById("inv-tab-rec").className=tab==="receipts"?"btn btn-primary btn-sm":"btn btn-ghost btn-sm";
+  document.getElementById('inv-panel-invoices').style.display=tab==='invoices'?'block':'none';
+  document.getElementById('inv-panel-receipts').style.display=tab==='receipts'?'block':'none';
+  document.getElementById('inv-tab-inv').className=tab==='invoices'?'btn btn-primary btn-sm':'btn btn-ghost btn-sm';
+  document.getElementById('inv-tab-rec').className=tab==='receipts'?'btn btn-primary btn-sm':'btn btn-ghost btn-sm';
 }
 function recordPayment(invId){
   populateInvoiceSelect();
-  setTimeout(()=>{document.getElementById("rm-invoice").value=invId;},50);
-  document.getElementById("rm-date").value=new Date().toISOString().split("T")[0];
-  openModal("receipt-modal");
+  openModal('receipt-modal');
+  setTimeout(()=>{document.getElementById('rm-invoice').value=invId;},50);
 }
 function populateCustomerSelects(){
-  const opts=DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
-  ["om-customer","qm-customer","im-customer"].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el)el.innerHTML=`<option value="">Select customer...</option>${opts}`;
-  });
+  const opts=DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  ['om-customer','qm-customer','im-customer'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=`<option value="">Select customer...</option>${opts}`;});
 }
 function populateOrderSelect(){
-  const el=document.getElementById("im-order");
-  if(el)el.innerHTML=`<option value="">None</option>${DB.orders.map(o=>`<option value="${o.id}">${o.num} — ${getCustomer(o.customer_id)?.name||"?"}</option>`).join("")}`;
+  const el=document.getElementById('im-order');
+  if(el)el.innerHTML=`<option value="">None</option>${DB.orders.map(o=>`<option value="${o.id}">${o.num} — ${getCustomer(o.customer_id)?.name||'?'}</option>`).join('')}`;
 }
 function populateInvoiceSelect(){
-  const el=document.getElementById("rm-invoice");
-  if(el)el.innerHTML=`<option value="">Select invoice...</option>${DB.invoices.filter(i=>i.status!=="paid").map(i=>`<option value="${i.id}">${i.num} — ${getCustomer(i.customer_id)?.name||"?"} (${fmtCurrency(i.amount-i.paid)} due)</option>`).join("")}`;
+  const el=document.getElementById('rm-invoice');
+  if(el)el.innerHTML=`<option value="">Select invoice...</option>${DB.invoices.filter(i=>i.status!=='paid').map(i=>`<option value="${i.id}">${i.num} — ${getCustomer(i.customer_id)?.name||'?'} (${fmtCurrency(i.amount-i.paid)} due)</option>`).join('')}`;
 }
-function saveInvoice(){
-  const custId=parseInt(document.getElementById("im-customer").value);
-  const amt=parseFloat(document.getElementById("im-amount").value);
-  if(!custId){document.getElementById("fg-im-customer").classList.add("err");return}
-  if(!amt){document.getElementById("fg-im-amount").classList.add("err");return}
-  DB.invoices.push({id:nextIds.invoice,num:genNum("INV",nextIds.invoice++),customer_id:custId,order_id:parseInt(document.getElementById("im-order").value)||null,amount:amt,paid:0,status:"unpaid",due:document.getElementById("im-due").value||null,created:new Date().toISOString().split("T")[0]});
-  closeModal("invoice-modal");renderInvoices();renderDashboard();toast("Invoice created");
+async function saveInvoice(){
+  const custId=parseInt(document.getElementById('im-customer').value);
+  const amt=parseFloat(document.getElementById('im-amount').value);
+  if(!custId){document.getElementById('fg-im-customer').classList.add('err');return;}
+  if(!amt){document.getElementById('fg-im-amount').classList.add('err');return;}
+  const newRow={id:nextIds.invoice,num:genNum('INV',nextIds.invoice++),customer_id:custId,order_id:parseInt(document.getElementById('im-order').value)||null,amount:amt,paid:0,status:'unpaid',due:document.getElementById('im-due').value||null,created:new Date().toISOString().split('T')[0]};
+  const saved=await sbInsert('invoices',newRow);
+  if(saved) newRow.id=saved.id;
+  DB.invoices.push(newRow);
+  saveToBrowser('invoices');
+  closeModal('invoice-modal');renderInvoices();renderDashboard();toast('Invoice created');
 }
-function saveReceipt(){
-  const invId=parseInt(document.getElementById("rm-invoice").value);
-  const amt=parseFloat(document.getElementById("rm-amount").value);
-  if(!invId){document.getElementById("fg-rm-invoice").classList.add("err");return}
-  if(!amt){document.getElementById("fg-rm-amount").classList.add("err");return}
-  DB.receipts.push({id:nextIds.receipt,num:genNum("REC",nextIds.receipt++),invoice_id:invId,amount:amt,method:document.getElementById("rm-method").value,date:document.getElementById("rm-date").value,ref:document.getElementById("rm-ref").value,notes:document.getElementById("rm-notes").value,created:new Date().toISOString().split("T")[0]});
-  // Update invoice
+async function saveReceipt(){
+  const invId=parseInt(document.getElementById('rm-invoice').value);
+  const amt=parseFloat(document.getElementById('rm-amount').value);
+  if(!invId){document.getElementById('fg-rm-invoice').classList.add('err');return;}
+  if(!amt){document.getElementById('fg-rm-amount').classList.add('err');return;}
+  const newRow={id:nextIds.receipt,num:genNum('REC',nextIds.receipt++),invoice_id:invId,amount:amt,method:document.getElementById('rm-method').value,date:document.getElementById('rm-date').value,ref:document.getElementById('rm-ref').value,notes:document.getElementById('rm-notes').value,created:new Date().toISOString().split('T')[0]};
+  const saved=await sbInsert('receipts',newRow);
+  if(saved) newRow.id=saved.id;
+  DB.receipts.push(newRow);
+  saveToBrowser('receipts');
   const inv=DB.invoices.find(i=>i.id===invId);
-  if(inv){inv.paid+=amt;inv.status=inv.paid>=inv.amount?"paid":inv.paid>0?"partial":"unpaid";}
-  closeModal("receipt-modal");renderInvoices();renderDashboard();toast("Payment recorded");
+  if(inv){
+    inv.paid+=amt;
+    inv.status=inv.paid>=inv.amount?'paid':inv.paid>0?'partial':'unpaid';
+    await sbUpdate('invoices',invId,{paid:inv.paid,status:inv.status});
+    saveToBrowser('invoices');
+  }
+  closeModal('receipt-modal');renderInvoices();renderDashboard();toast('Payment recorded');
 }
-function deleteInvoice(id){openConfirm("Delete this invoice?",()=>{DB.invoices=DB.invoices.filter(i=>i.id!==id);renderInvoices();renderDashboard();toast("Deleted","error")})}
+async function deleteInvoice(id){
+  openConfirm('Delete this invoice?',async()=>{
+    await sbDelete('invoices',id);
+    DB.invoices=DB.invoices.filter(i=>i.id!==id);
+    saveToBrowser('invoices');
+    renderInvoices();renderDashboard();toast('Deleted','error');
+  });
+}
 
-// ── USERS
+/* ══════════════════════════════════════════════════════
+   USERS
+══════════════════════════════════════════════════════ */
 function renderUsers(filter){
   populateRoleSelect();
-  var list = filter ? DB.users.filter(function(u){
-    return u.name.toLowerCase().includes(filter.toLowerCase()) ||
-           u.email.toLowerCase().includes(filter.toLowerCase());
-  }) : DB.users;
-  document.getElementById("users-table").innerHTML = list.map(function(u){
-    var roleName  = getRoleName(u.role_id);
-    var roleCls   = getRoleBadgeColor(u.role_id);
-    var roleBadge = '<span class="badge ' + roleCls + '">' + roleName + '</span>';
-    var statusBadge = STATUS_BADGE[u.status] || u.status;
-    return '<tr>' +
-      '<td><div style="display:flex;align-items:center;gap:10px">' +
-        '<div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--teal))">' + u.name[0] + '</div>' +
-        '<div><div style="font-weight:600">' + u.name + '</div>' +
-        '<div style="font-size:.72rem;color:var(--text3)">' + u.email + '</div></div>' +
-      '</div></td>' +
-      '<td>' + roleBadge + '</td>' +
-      '<td class="td-light">' + (u.lastActive || '—') + '</td>' +
-      '<td>' + statusBadge + '</td>' +
-      '<td><div style="display:flex;gap:6px;align-items:center">' +
-        '<button class="btn btn-outline btn-sm" onclick="editUser(' + u.id + ')">' +
-          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
-          ' Edit' +
-        '</button>' +
-        '<button class="btn btn-sm" onclick="toggleUserStatus(' + u.id + ')" style="background:' +
-          (u.status==='active' ? 'rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.25)' :
-                                  'rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.25)') + '">' +
-          (u.status === 'active' ? 'Deactivate' : 'Activate') +
-        '</button>' +
-        (u.id > 1 ?
-          '<button class="btn-icon" onclick="deleteUser(' + u.id + ')" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)">' +
-            '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
-          '</button>' : '') +
-      '</div></td>' +
-    '</tr>';
-  }).join('') || '<tr><td colspan="5"><div class="empty-state"><div class="empty-title">No users found</div></div></td></tr>';
+  var list=filter?DB.users.filter(u=>u.name.toLowerCase().includes(filter.toLowerCase())||u.email.toLowerCase().includes(filter.toLowerCase())):DB.users;
+  document.getElementById('users-table').innerHTML=list.map(u=>{
+    var roleBadge='<span class="badge '+getRoleBadgeColor(u.role_id)+'">'+getRoleName(u.role_id)+'</span>';
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--teal))">${u.name[0]}</div><div><div style="font-weight:600">${u.name}</div><div style="font-size:.72rem;color:var(--text3)">${u.email}</div></div></div></td>
+      <td>${roleBadge}</td>
+      <td class="td-light">${u.lastActive||'—'}</td>
+      <td>${STATUS_BADGE[u.status]||u.status}</td>
+      <td><div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn-outline btn-sm" onclick="editUser(${u.id})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
+        <button class="btn btn-sm" onclick="toggleUserStatus(${u.id})" style="background:${u.status==='active'?'rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.25)':'rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.25)'}">
+          ${u.status==='active'?'Deactivate':'Activate'}
+        </button>
+        ${u.id>1?`<button class="btn-icon" onclick="deleteUser(${u.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="5"><div class="empty-state"><div class="empty-title">No users found</div></div></td></tr>`;
 }
 function editUser(id){
-  var u = DB.users.find(function(x){ return x.id === id; });
-  if(!u) return;
+  var u=DB.users.find(x=>x.id===id);if(!u)return;
   populateRoleSelect();
-  document.getElementById("user-modal-title").textContent = "Edit User";
-  document.getElementById("um-save-btn").textContent = "Save Changes";
-  document.getElementById("um-id").value = id;
-  document.getElementById("um-name").value = u.name;
-  document.getElementById("um-email").value = u.email;
-  document.getElementById("um-pass").value = "";
-  document.getElementById("um-role").value = u.role_id;
-  document.getElementById("um-status").value = u.status;
-  var passLbl = document.querySelector("#um-pass-group .form-label");
-  if(passLbl) passLbl.innerHTML = 'Password <span style="color:var(--text3);font-weight:400">(leave blank to keep)</span>';
-  openModal("user-modal");
+  document.getElementById('user-modal-title').textContent='Edit User';
+  document.getElementById('um-save-btn').textContent='Save Changes';
+  document.getElementById('um-id').value=id;
+  document.getElementById('um-name').value=u.name;
+  document.getElementById('um-email').value=u.email;
+  document.getElementById('um-pass').value='';
+  document.getElementById('um-role').value=u.role_id;
+  document.getElementById('um-status').value=u.status;
+  var passLbl=document.querySelector('#um-pass-group .form-label');
+  if(passLbl)passLbl.innerHTML='Password <span style="color:var(--text3);font-weight:400">(leave blank to keep)</span>';
+  openModal('user-modal');
 }
-function toggleUserStatus(id){
-  const u=DB.users.find(x=>x.id===id);
-  if(!u)return;
-  u.status=u.status==="active"?"inactive":"active";
-  renderUsers();
-  toast("User "+(u.status==="active"?"activated":"deactivated"));
-}
-function saveUser(){
-  var name    = document.getElementById("um-name").value.trim();
-  var email   = document.getElementById("um-email").value.trim();
-  var pass    = document.getElementById("um-pass").value;
-  var role_id = parseInt(document.getElementById("um-role").value);
-  var status  = document.getElementById("um-status").value || "active";
-  var id      = parseInt(document.getElementById("um-id").value) || 0;
-
-  if(!name || !email){ toast("Name and email are required","error"); return; }
-  if(!role_id){ toast("Please select a role","error"); return; }
-
+async function saveUser(){
+  var name=document.getElementById('um-name').value.trim();
+  var email=document.getElementById('um-email').value.trim();
+  var pass=document.getElementById('um-pass').value;
+  var role_id=parseInt(document.getElementById('um-role').value);
+  var status=document.getElementById('um-status').value||'active';
+  var id=parseInt(document.getElementById('um-id').value)||0;
+  if(!name||!email){toast('Name and email are required','error');return;}
+  if(!role_id){toast('Please select a role','error');return;}
   if(id){
-    // UPDATE existing user
-    var idx = DB.users.findIndex(function(u){ return u.id === id; });
-    if(idx > -1){
-      DB.users[idx].name    = name;
-      DB.users[idx].email   = email;
-      DB.users[idx].role_id = role_id;
-      DB.users[idx].status  = status;
-      toast("User updated successfully");
+    var idx=DB.users.findIndex(u=>u.id===id);
+    if(idx>-1){
+      DB.users[idx]={...DB.users[idx],name,email,role_id,status};
+      await sbUpdate('users',id,{name,email,role_id,status});
+      saveToBrowser('users');
+      toast('User updated');
     }
-  } else {
-    // CREATE new user
-    if(!pass || pass.length < 6){ toast("Password must be at least 6 characters","error"); return; }
-    DB.users.push({ id: nextIds.user++, name: name, email: email, role_id: role_id, status: "active", lastActive: "Just now" });
-    toast("User created successfully");
+  }else{
+    if(!pass||pass.length<6){toast('Password must be at least 6 characters','error');return;}
+    var newRow={id:nextIds.user++,name,email,role_id,status:'active',lastActive:'Just now'};
+    var saved=await sbInsert('users',newRow);
+    if(saved) newRow.id=saved.id;
+    DB.users.push(newRow);
+    saveToBrowser('users');
+    toast('User created');
   }
-
-  // Reset modal state
-  document.getElementById("um-id").value = "";
-  document.getElementById("user-modal-title").textContent = "Add User";
-  document.getElementById("um-save-btn").textContent = "Create User";
-  document.getElementById("um-name").value = "";
-  document.getElementById("um-email").value = "";
-  document.getElementById("um-pass").value = "";
-
-  var passLbl = document.querySelector("#um-pass-group .form-label");
-  if(passLbl) passLbl.innerHTML = 'Password <span>*</span>';
-
-  closeModal("user-modal");
-  renderUsers();
+  document.getElementById('um-id').value='';
+  document.getElementById('user-modal-title').textContent='Add User';
+  document.getElementById('um-save-btn').textContent='Create User';
+  document.getElementById('um-name').value='';
+  document.getElementById('um-email').value='';
+  document.getElementById('um-pass').value='';
+  var passLbl=document.querySelector('#um-pass-group .form-label');
+  if(passLbl)passLbl.innerHTML='Password <span>*</span>';
+  closeModal('user-modal');renderUsers();
 }
-function deleteUser(id){openConfirm("Delete this user?",()=>{DB.users=DB.users.filter(u=>u.id!==id);renderUsers();toast("User deleted","error")})}
+async function toggleUserStatus(id){
+  var u=DB.users.find(x=>x.id===id);if(!u)return;
+  u.status=u.status==='active'?'inactive':'active';
+  await sbUpdate('users',id,{status:u.status});
+  saveToBrowser('users');
+  renderUsers();toast('User '+(u.status==='active'?'activated':'deactivated'));
+}
+async function deleteUser(id){
+  openConfirm('Delete this user?',async()=>{
+    await sbDelete('users',id);
+    DB.users=DB.users.filter(u=>u.id!==id);
+    saveToBrowser('users');
+    renderUsers();toast('User deleted','error');
+  });
+}
+function openAddUser(){
+  populateRoleSelect();
+  document.getElementById('um-id').value='';
+  document.getElementById('um-name').value='';
+  document.getElementById('um-email').value='';
+  document.getElementById('um-pass').value='';
+  var roleEl=document.getElementById('um-role');
+  if(roleEl&&DB.roles.length)roleEl.value=DB.roles[0].id;
+  document.getElementById('um-status').value='active';
+  document.getElementById('user-modal-title').textContent='Add User';
+  document.getElementById('um-save-btn').textContent='Create User';
+  var passLbl=document.querySelector('#um-pass-group .form-label');
+  if(passLbl)passLbl.innerHTML='Password <span>*</span>';
+  openModal('user-modal');
+}
 
-// ── ROLES
-const ALL_TABS=["dashboard","customers","orders","quotations","invoices","reports","site-settings","users","roles"];
-const TAB_LABELS={dashboard:"Dashboard",customers:"Customers",orders:"Orders",quotations:"Quotations",invoices:"Invoices & Receipts",reports:"Reports","site-settings":"Site Settings",users:"Users",roles:"Roles & Permissions"};
-const ROLE_COLORS={navy:"background:var(--navy);color:#fff",teal:"background:var(--teal);color:#fff",purple:"background:rgba(139,92,246,.15);color:var(--purple)",blue:"background:rgba(59,130,246,.1);color:#2563eb"};
+/* ══════════════════════════════════════════════════════
+   ROLES & PERMISSIONS
+══════════════════════════════════════════════════════ */
+let selectedRoleId=1;
+const ALL_TABS=['dashboard','customers','orders','quotations','invoices','reports','site-settings','users','roles'];
+const TAB_LABELS={dashboard:'Dashboard',customers:'Customers',orders:'Orders',quotations:'Quotations',invoices:'Invoices & Receipts',reports:'Reports','site-settings':'Site Settings',users:'Users',roles:'Roles & Permissions'};
+const ROLE_COLORS={1:'var(--navy)',2:'var(--teal)',3:'#8b5cf6',4:'#3b82f6'};
 
 function renderRoles(){
-  document.getElementById("roles-list").innerHTML=DB.roles.map(r=>`
-    <div onclick="selectRole(${r.id})" style="padding:10px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:4px;transition:all .15s;${selectedRoleId===r.id?"background:var(--teal-bg);border:1px solid var(--border2)":"border:1px solid transparent"}">
-      <div style="width:8px;height:8px;border-radius:50%;${ROLE_COLORS[r.color]||"background:var(--teal)"}"></div>
-      <div style="flex:1">
-        <div style="font-size:.85rem;font-weight:700;color:var(--text)">${r.name}</div>
-        <div style="font-size:.7rem;color:var(--text3)">${r.desc}</div>
-      </div>
-      <button onclick="event.stopPropagation();deleteRole(${r.id})" style="opacity:.4;transition:opacity .2s;color:var(--red)" class="btn-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>`).join("");
+  document.getElementById('roles-list').innerHTML=DB.roles.map(r=>`
+    <div onclick="selectRole(${r.id})" style="padding:10px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:4px;transition:all .15s;${selectedRoleId===r.id?'background:var(--teal-bg);border:1px solid var(--border2)':'border:1px solid transparent'}">
+      <div style="width:8px;height:8px;border-radius:50%;background:${ROLE_COLORS[r.id]||'var(--teal)'}"></div>
+      <div style="flex:1"><div style="font-size:.85rem;font-weight:700;color:var(--text)">${r.name}</div><div style="font-size:.7rem;color:var(--text3)">${r.desc}</div></div>
+      ${r.id!==1?`<button onclick="event.stopPropagation();deleteRole(${r.id})" style="opacity:.4;color:var(--red)" class="btn-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`:''}
+    </div>`).join('');
   renderPermissions();
 }
-function selectRole(id){selectedRoleId=id;renderRoles()}
+function selectRole(id){selectedRoleId=id;renderRoles();}
 function renderPermissions(){
-  const role=DB.roles.find(r=>r.id===selectedRoleId);
-  if(!role){document.getElementById("perm-table-body").innerHTML="";return}
-  document.getElementById("perm-role-name").textContent=`Editing: ${role.name}`;
-  const perms=DB.permissions[selectedRoleId]||{};
-  document.getElementById("perm-table-body").innerHTML=ALL_TABS.map(tab=>`
+  var role=DB.roles.find(r=>r.id===selectedRoleId);
+  if(!role){document.getElementById('perm-table-body').innerHTML='';return;}
+  document.getElementById('perm-role-name').textContent='Editing: '+role.name;
+  var perms=DB.permissions[selectedRoleId]||{};
+  document.getElementById('perm-table-body').innerHTML=ALL_TABS.map(tab=>`
     <tr>
       <td>${TAB_LABELS[tab]}</td>
       <td>
-        <div class="perm-check ${perms[tab]?"on":""}" onclick="togglePerm('${tab}')">
+        <div class="perm-check ${perms[tab]?'on':''}" onclick="togglePerm('${tab}')">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
       </td>
-    </tr>`).join("");
+    </tr>`).join('');
 }
 function togglePerm(tab){
   if(!DB.permissions[selectedRoleId])DB.permissions[selectedRoleId]={};
   DB.permissions[selectedRoleId][tab]=!DB.permissions[selectedRoleId][tab];
   renderPermissions();
 }
-function savePermissions(){toast("Permissions saved")}
+function savePermissions(){toast('Permissions saved');}
 function saveRole(){
-  const name=document.getElementById("rm2-name").value.trim();
-  if(!name)return;
-  DB.roles.push({id:Date.now(),name,desc:document.getElementById("rm2-desc").value,color:"teal"});
-  closeModal("role-modal");
-  renderRoles();
-  renderUsers();
-  toast("Role created");
+  var name=document.getElementById('rm2-name').value.trim();if(!name)return;
+  var newRole={id:Date.now(),name,desc:document.getElementById('rm2-desc').value,color:'teal'};
+  DB.roles.push(newRole);
+  closeModal('role-modal');renderRoles();renderUsers();toast('Role created');
 }
 function deleteRole(id){
-  if(id===1){toast("Cannot delete Administrator role","error");return}
-  openConfirm("Delete this role? Users assigned to it will need reassignment.",()=>{
+  if(id===1){toast('Cannot delete Administrator role','error');return;}
+  openConfirm('Delete this role? Users assigned to it will need reassignment.',()=>{
     DB.roles=DB.roles.filter(r=>r.id!==id);
-    if(selectedRoleId===id) selectedRoleId=DB.roles[0]?.id;
-    renderRoles();
-    renderUsers();
-    toast("Role deleted","error");
+    if(selectedRoleId===id)selectedRoleId=DB.roles[0]?.id;
+    renderRoles();renderUsers();toast('Role deleted','error');
   });
 }
 
-// ── SETTINGS
+/* ══════════════════════════════════════════════════════
+   SITE SETTINGS
+══════════════════════════════════════════════════════ */
 function switchSettingsTab(tab,el){
-  ["hero","stats","company","seo"].forEach(t=>{
-    document.getElementById("settings-tab-"+t).style.display=t===tab?"block":"none";
+  ['hero','stats','company','seo'].forEach(t=>{
+    document.getElementById('settings-tab-'+t).style.display=t===tab?'block':'none';
   });
-  document.querySelectorAll(".settings-nav-item").forEach(i=>i.classList.remove("active"));
-  el.classList.add("active");
+  document.querySelectorAll('.settings-nav-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
 }
-function saveSettings(){
-  toast('Settings saved successfully');
-}
-function initApp() {
+function saveSettings(){toast('Settings saved successfully');}
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+async function initApp(){
+  await loadAllData();
   renderDashboard();
   renderCustomers();
   renderOrders();
@@ -2442,31 +2623,20 @@ function initApp() {
   renderRoles();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Pre-fill demo credentials
-  var em = document.getElementById('l-email');
-  var pw = document.getElementById('l-pass');
-  if (em) em.value = 'admin@vyrasystems.com';
-  if (pw) pw.value = 'admin123';
+document.addEventListener('DOMContentLoaded',function(){
+  var em=document.getElementById('l-email');
+  var pw=document.getElementById('l-pass');
+  if(em)em.value='admin@vyrasystems.com';
+  if(pw)pw.value='admin123';
+  // Show connection status
+  if(!ONLINE){
+    var info=document.createElement('div');
+    info.style.cssText='background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:7px;padding:8px 12px;font-size:.72rem;color:#d97706;margin-bottom:14px;text-align:center';
+    info.textContent='Offline mode — data stored in browser. Connect Supabase for real database.';
+    var form=document.querySelector('.login-card form');
+    if(form)form.parentNode.insertBefore(info,form);
+  }
 });
-
-function openAddUser(){
-  populateRoleSelect();
-  document.getElementById("um-id").value = "";
-  document.getElementById("um-name").value = "";
-  document.getElementById("um-email").value = "";
-  document.getElementById("um-pass").value = "";
-  // Default to first available role
-  var roleEl = document.getElementById("um-role");
-  if(roleEl && DB.roles.length) roleEl.value = DB.roles[0].id;
-  document.getElementById("um-status").value = "active";
-  document.getElementById("user-modal-title").textContent = "Add User";
-  document.getElementById("um-save-btn").textContent = "Create User";
-  var passLbl = document.querySelector("#um-pass-group .form-label");
-  if(passLbl) passLbl.innerHTML = 'Password <span>*</span>';
-  openModal("user-modal");
-}
-
 </script>
 </body>
 </html>
