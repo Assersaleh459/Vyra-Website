@@ -2112,11 +2112,54 @@ async function saveCustomer(){
   renderCustomers();renderDashboard();
 }
 async function deleteCustomer(id){
-  openConfirm('Delete this customer and all their records?',async()=>{
-    await sbDelete('customers',id);
-    DB.customers=DB.customers.filter(c=>c.id!==id);
-    saveToBrowser('customers');
-    renderCustomers();renderDashboard();toast('Customer deleted','error');
+  const c = DB.customers.find(x=>x.id===id);
+  if(!c) return;
+
+  // Count related records to warn the user
+  const relOrders     = DB.orders.filter(o=>o.customer_id===id).length;
+  const relQuotations = DB.quotations.filter(q=>q.customer_id===id).length;
+  const relInvoices   = DB.invoices.filter(i=>i.customer_id===id).length;
+
+  let msg = `Delete "${c.name}"?`;
+  const related = [];
+  if(relOrders)     related.push(relOrders     + ' order'     + (relOrders>1?'s':''));
+  if(relQuotations) related.push(relQuotations + ' quotation' + (relQuotations>1?'s':''));
+  if(relInvoices)   related.push(relInvoices   + ' invoice'   + (relInvoices>1?'s':''));
+  if(related.length) msg += ' This will also delete ' + related.join(', ') + ' linked to this customer.';
+
+  openConfirm(msg, async()=>{
+    // 1. Collect related IDs before deleting
+    const orderIds     = DB.orders.filter(o=>o.customer_id===id).map(o=>o.id);
+    const quotationIds = DB.quotations.filter(q=>q.customer_id===id).map(q=>q.id);
+    const invoiceIds   = DB.invoices.filter(i=>i.customer_id===id).map(i=>i.id);
+    const receiptIds   = DB.receipts.filter(r=>invoiceIds.includes(r.invoice_id)).map(r=>r.id);
+
+    // 2. Delete from Supabase (cascade order: receipts → invoices → orders/quotations → customer)
+    for(const rid of receiptIds)   await sbDelete('receipts',   rid);
+    for(const iid of invoiceIds)   await sbDelete('invoices',   iid);
+    for(const oid of orderIds)     await sbDelete('orders',     oid);
+    for(const qid of quotationIds) await sbDelete('quotations', qid);
+    await sbDelete('customers', id);
+
+    // 3. Remove from local DB arrays
+    DB.receipts   = DB.receipts.filter(r=>!receiptIds.includes(r.id));
+    DB.invoices   = DB.invoices.filter(i=>!invoiceIds.includes(i.id));
+    DB.orders     = DB.orders.filter(o=>!orderIds.includes(o.id));
+    DB.quotations = DB.quotations.filter(q=>!quotationIds.includes(q.id));
+    DB.customers  = DB.customers.filter(c=>c.id!==id);
+
+    // 4. Persist to browser storage
+    ['customers','orders','quotations','invoices','receipts'].forEach(t=>saveToBrowser(t));
+
+    // 5. Refresh all affected pages
+    renderCustomers();
+    renderOrders('', orderFilterStatus);
+    renderQuotations();
+    renderInvoices();
+    renderDashboard();
+
+    const total = orderIds.length + quotationIds.length + invoiceIds.length + receiptIds.length;
+    toast(`Customer deleted${total ? ' along with ' + total + ' related record' + (total>1?'s':'') : ''}`, 'error');
   });
 }
 
