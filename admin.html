@@ -601,7 +601,7 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
         Sign In to Admin Panel
       </button>
     </form>
-    <p style="text-align:center;font-size:.7rem;color:var(--text3);margin-top:16px">Demo: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d4b5b0b9bdba94a2ada6b5a7ada7a0b1b9a7fab7bbb9">[email&#160;protected]</a> / admin123</p>
+    <p style="text-align:center;font-size:.7rem;color:var(--text3);margin-top:16px">Demo: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5031343d393e102629223123292324353d237e333f3d">[email&#160;protected]</a> / admin123</p>
   </div>
 </div>
 
@@ -1635,6 +1635,7 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
 <div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none"></div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+
 // ═══════════════════════════════════════════════════════
 // DATA STORE
 // ═══════════════════════════════════════════════════════
@@ -2289,7 +2290,23 @@ function switchSettingsTab(tab,el){
   document.querySelectorAll(".settings-nav-item").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
 }
-function saveSettings(){toast("Settings saved successfully")}
+function initApp() {
+  renderDashboard();
+  renderCustomers();
+  renderOrders();
+  renderQuotations();
+  renderInvoices();
+  renderUsers();
+  renderRoles();
+}
 
-// ── INIT
-functi
+document.addEventListener('DOMContentLoaded', function() {
+  // Pre-fill demo credentials
+  var em = document.getElementById('l-email');
+  var pw = document.getElementById('l-pass');
+  if (em) em.value = 'admin@vyrasystems.com';
+  if (pw) pw.value = 'admin123';
+});
+</script>
+</body>
+</html>
