@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VYRA Systems — Admin Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#19224A;--navy2:#223B73;--teal:#5FAEB6;--teal2:#7CC6CC;
+  --sidebar-w:240px;--sidebar-w-sm:64px;
+  --bg:#F0F4FA;--bg2:#E8EEF8;--surface:#FFFFFF;
+  --text:#19224A;--text2:#4A5A7A;--text3:#8A9CC0;
+  --border:rgba(25,34,74,.1);--border2:rgba(95,174,182,.3);
+  --teal-bg:rgba(95,174,182,.1);--navy-bg:rgba(25,34,74,.06);
+  --shadow:0 2px 12px rgba(25,34,74,.08);--shadow-lg:0 8px 32px rgba(25,34,74,.12);
+  --r:10px;--ff:'Montserrat',sans-serif;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;--purple:#8b5cf6;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--ff);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:var(--ff);border:none;background:none;color:inherit}
+input,select,textarea{font-family:var(--ff)}
+ul,ol{list-style:none}
+::selection{background:rgba(95,174,182,.3);color:#fff}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(25,34,74,.15);border-radius:2px}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;z-index:200;
+  width:var(--sidebar-w);
+  background:var(--navy);
+  transition:width .25s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.sidebar.collapsed{width:var(--sidebar-w-sm)}
+.main{
+  margin-left:var(--sidebar-w);
+  flex:1;display:flex;flex-direction:column;
+  transition:margin-left .25s cubic-bezier(.4,0,.2,1);
+  min-height:100vh;
+}
+.sidebar.collapsed ~ .main{margin-left:var(--sidebar-w-sm)}
+
+/* ── SIDEBAR ── */
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:20px 16px 16px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  white-space:nowrap;overflow:hidden;
+  flex-shrink:0;
+}
+.sb-logo-mark{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(95,174,182,.3),rgba(95,174,182,.1));
+  border:1px solid rgba(95,174,182,.35);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.sb-logo-mark::after{
+  content:'';position:absolute;top:-2px;right:-2px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--teal);animation:blink 2.5s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sb-logo-text{overflow:hidden}
+.sb-logo-name{font-size:.95rem;font-weight:800;letter-spacing:.1em;color:#fff}
+.sb-logo-sub{font-size:.55rem;font-weight:600;color:var(--teal);letter-spacing:.25em;text-transform:uppercase;display:block;margin-top:1px}
+
+.sb-nav{flex:1;padding:12px 8px;overflow-y:auto;overflow-x:hidden}
+.sb-section{font-size:.55rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:8px 10px 4px;white-space:nowrap;overflow:hidden}
+.sb-link{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:8px;
+  font-size:.8rem;font-weight:500;
+  color:rgba(255,255,255,.55);
+  transition:all .18s;white-space:nowrap;
+  position:relative;margin-bottom:2px;
+  overflow:hidden;
+}
+.sb-link:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.06)}
+.sb-link.active{color:#fff;background:rgba(95,174,182,.18);font-weight:600}
+.sb-link.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:20px;border-radius:0 3px 3px 0;
+  background:var(--teal);
+}
+.sb-link svg{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sb-link-text{overflow:hidden;text-overflow:ellipsis}
+.sb-badge{
+  margin-left:auto;min-width:18px;height:18px;border-radius:9px;
+  background:rgba(95,174,182,.25);color:var(--teal);
+  font-size:.6rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 5px;flex-shrink:0;
+}
+.collapsed .sb-section,.collapsed .sb-link-text,.collapsed .sb-badge,.collapsed .sb-logo-text{display:none}
+
+.sb-user{
+  padding:12px 8px;border-top:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;overflow:hidden;
+}
+.sb-user-inner{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:8px;
+  transition:background .2s;cursor:pointer;
+}
+.sb-user-inner:hover{background:rgba(255,255,255,.06)}
+.sb-avatar{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),var(--navy2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:800;color:#fff;
+}
+.sb-user-name{font-size:.78rem;font-weight:600;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:.6rem;color:var(--teal);text-transform:uppercase;letter-spacing:.1em}
+
+.sb-toggle{
+  position:absolute;top:20px;right:-12px;
+  width:24px;height:24px;border-radius:50%;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--shadow);cursor:pointer;z-index:10;
+  transition:all .2s;
+}
+.sb-toggle:hover{border-color:var(--teal);color:var(--teal)}
+.sb-toggle svg{width:12px;height:12px;stroke:var(--text2);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.sb-toggle:hover svg{stroke:var(--teal)}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;flex-shrink:0;
+  box-shadow:0 1px 4px rgba(25,34,74,.04);
+  position:sticky;top:0;z-index:100;
+}
+.tb-left{display:flex;align-items:center;gap:12px}
+.tb-page-title{font-size:1rem;font-weight:700;color:var(--text)}
+.tb-breadcrumb{font-size:.72rem;color:var(--text3)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{
+  width:34px;height:34px;border-radius:8px;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;color:var(--text2);position:relative;
+}
+.tb-btn:hover{border-color:var(--border2);color:var(--teal);background:var(--teal-bg)}
+.tb-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.notif-dot{
+  position:absolute;top:6px;right:6px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--red);border:1.5px solid var(--surface);
+}
+.mob-sb-btn{display:none}
+
+/* ── CONTENT ── */
+.content{flex:1;padding:24px;overflow-y:auto}
+.page{display:none}
+.page.active{display:block}
+
+/* ── TYPOGRAPHY ── */
+.pg-title{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-.02em}
+.pg-sub{font-size:.8rem;color:var(--text3);margin-bottom:24px}
+
+/* ── STAT CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{
+  background:var(--surface);border-radius:var(--r);
+  border:1px solid var(--border);padding:18px 20px;
+  display:flex;align-items:flex-start;gap:14px;
+  box-shadow:var(--shadow);transition:all .2s;
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.stat-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.stat-icon svg{width:18px;height:18px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.stat-label{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.stat-value{font-size:1.6rem;font-weight:800;color:var(--text);line-height:1;letter-spacing:-.02em}
+.stat-trend{font-size:.7rem;font-weight:600;margin-top:4px;display:flex;align-items:center;gap:3px}
+.trend-up{color:var(--green)}.trend-down{color:var(--red)}.trend-neutral{color:var(--text3)}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow)}
+.card-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-size:.9rem;font-weight:700;color:var(--text)}
+.card-sub{font-size:.72rem;color:var(--text3);margin-top:2px}
+.card-body{padding:20px}
+.card-footer{padding:12px 20px;border-top:1px solid var(--border);background:rgba(240,244,250,.5)}
+
+/* ── GRID LAYOUTS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-cols-3-1{display:grid;grid-template-columns:3fr 1fr;gap:16px}
+.grid-cols-2-1{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{background:rgba(240,244,250,.8)}
+thead th{
+  padding:10px 14px;text-align:left;
+  font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);white-space:nowrap;
+}
+tbody tr{border-top:1px solid var(--border);transition:background .15s}
+tbody tr:hover{background:rgba(95,174,182,.04)}
+tbody td{padding:12px 14px;font-size:.82rem;color:var(--text);vertical-align:middle}
+.td-light{color:var(--text2)}
+.td-mono{font-family:monospace;font-size:.8rem;letter-spacing:.02em}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:100px;
+  font-size:.65rem;font-weight:700;letter-spacing:.05em;
+  white-space:nowrap;
+}
+.badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-teal{background:rgba(95,174,182,.12);color:var(--teal)}
+.badge-green{background:rgba(34,197,94,.1);color:#16a34a}
+.badge-amber{background:rgba(245,158,11,.1);color:#d97706}
+.badge-red{background:rgba(239,68,68,.1);color:#dc2626}
+.badge-blue{background:rgba(59,130,246,.1);color:#2563eb}
+.badge-purple{background:rgba(139,92,246,.1);color:#7c3aed}
+.badge-gray{background:rgba(25,34,74,.06);color:var(--text3)}
+.badge-navy{background:rgba(25,34,74,.1);color:var(--navy)}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;border-radius:7px;
+  font-size:.8rem;font-weight:600;
+  transition:all .2s;cursor:pointer;white-space:nowrap;
+}
+.btn svg{width:14px;height:14px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-primary{background:var(--teal);color:#fff;box-shadow:0 2px 8px rgba(95,174,182,.3)}
+.btn-primary:hover{background:var(--teal2);transform:translateY(-1px)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{background:var(--navy2)}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--border2);color:var(--teal);background:var(--teal-bg)}
+.btn-danger{background:rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.15)}
+.btn-ghost{background:transparent;color:var(--text2);padding:6px 10px}
+.btn-ghost:hover{background:var(--navy-bg);color:var(--text)}
+.btn-sm{padding:5px 11px;font-size:.73rem}
+.btn-icon{padding:7px;border-radius:7px;border:1px solid var(--border);color:var(--text2);transition:all .2s}
+.btn-icon:hover{border-color:var(--border2);color:var(--teal);background:var(--teal-bg)}
+.btn-icon svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── FORM ELEMENTS ── */
+.form-row{display:grid;gap:14px;margin-bottom:14px}
+.form-row-2{grid-template-columns:1fr 1fr}
+.form-row-3{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:.7rem;font-weight:600;color:var(--text2);letter-spacing:.04em}
+.form-label span{color:var(--red);margin-left:2px}
+.form-ctrl{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:7px;padding:9px 12px;
+  font-size:.85rem;color:var(--text);
+  transition:all .2s;outline:none;width:100%;
+}
+.form-ctrl::placeholder{color:var(--text3)}
+.form-ctrl:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(95,174,182,.1)}
+.form-ctrl.error{border-color:var(--red)}
+select.form-ctrl{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%238A9CC0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;appearance:none}
+select.form-ctrl option{background:#fff;color:var(--text)}
+textarea.form-ctrl{resize:vertical;min-height:80px}
+.form-error{font-size:.7rem;color:var(--red);margin-top:2px;display:none}
+.form-group.err .form-ctrl{border-color:var(--red)}
+.form-group.err .form-error{display:block}
+
+/* ── SEARCH + FILTER BAR ── */
+.toolbar{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:16px;flex-wrap:wrap;
+}
+.search-wrap{position:relative;flex:1;min-width:200px;max-width:320px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.search-input{
+  width:100%;padding:8px 12px 8px 32px;
+  border:1px solid var(--border);border-radius:7px;
+  background:var(--surface);font-size:.82rem;color:var(--text);outline:none;
+  transition:all .2s;
+}
+.search-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(95,174,182,.1)}
+.filter-select{
+  padding:8px 28px 8px 10px;border:1px solid var(--border);border-radius:7px;
+  background:var(--surface);font-size:.8rem;color:var(--text2);
+  outline:none;cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%238A9CC0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  transition:border-color .2s;font-family:var(--ff);
+}
+.filter-select:focus{border-color:var(--teal);outline:none}
+.ml-auto{margin-left:auto}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(25,34,74,.4);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border-radius:14px;
+  width:100%;max-height:90vh;overflow-y:auto;
+  box-shadow:0 24px 60px rgba(25,34,74,.2);
+  animation:modalIn .25s cubic-bezier(.21,.47,.32,.98);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-sm{max-width:440px}
+.modal-md{max-width:580px}
+.modal-lg{max-width:760px}
+.modal-xl{max-width:960px}
+.modal-header{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--surface);z-index:1;
+}
+.modal-title{font-size:1rem;font-weight:700;color:var(--text)}
+.modal-close{
+  width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text3);transition:all .2s;cursor:pointer;
+}
+.modal-close:hover{background:var(--navy-bg);color:var(--text)}
+.modal-close svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.modal-body{padding:24px}
+.modal-footer{
+  padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+  background:rgba(240,244,250,.4);
+  position:sticky;bottom:0;
+}
+
+/* ── CONFIRM DIALOG ── */
+.confirm-overlay{
+  position:fixed;inset:0;z-index:600;
+  background:rgba(25,34,74,.5);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+}
+.confirm-overlay.open{display:flex}
+.confirm-box{
+  background:var(--surface);border-radius:14px;
+  max-width:380px;width:90%;padding:28px;
+  box-shadow:0 24px 60px rgba(25,34,74,.2);
+  animation:modalIn .25s ease;text-align:center;
+}
+.confirm-icon{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(239,68,68,.1);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+}
+.confirm-icon svg{width:24px;height:24px;stroke:#dc2626;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.confirm-title{font-size:1rem;font-weight:700;margin-bottom:8px}
+.confirm-msg{font-size:.82rem;color:var(--text2);margin-bottom:22px;line-height:1.55}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
+
+/* ── CHARTS ── */
+.chart-bar-wrap{display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:8px}
+.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{
+  width:100%;border-radius:4px 4px 0 0;
+  background:linear-gradient(180deg,var(--teal),var(--teal2));
+  transition:height .5s ease;min-height:4px;
+}
+.chart-bar:hover{filter:brightness(1.1)}
+.chart-bar-lbl{font-size:.58rem;color:var(--text3);font-weight:600}
+.chart-bar-val{font-size:.65rem;color:var(--teal);font-weight:700}
+
+.donut-wrap{position:relative;width:120px;height:120px;flex-shrink:0}
+.donut-label{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  font-size:1.2rem;font-weight:800;color:var(--text);line-height:1;
+}
+.donut-label span{font-size:.6rem;color:var(--text3);margin-top:2px}
+.legend-item{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.legend-label{font-size:.75rem;color:var(--text2);flex:1}
+.legend-val{font-size:.75rem;font-weight:700;color:var(--text)}
+
+/* ── LINE CHART SVG ── */
+.line-chart-wrap{position:relative;height:160px}
+.line-chart-wrap svg{width:100%;height:100%}
+
+/* ── MISC ── */
+.divider{height:1px;background:var(--border);margin:16px 0}
+.empty-state{
+  text-align:center;padding:48px 20px;
+}
+.empty-icon{
+  width:52px;height:52px;border-radius:12px;
+  background:var(--bg2);margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.empty-icon svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.empty-title{font-size:.9rem;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty-msg{font-size:.78rem;color:var(--text3)}
+
+.avatar{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:800;color:#fff;flex-shrink:0;
+}
+.tag{
+  padding:2px 8px;border-radius:5px;
+  font-size:.65rem;font-weight:600;
+  background:var(--bg2);color:var(--text3);
+  border:1px solid var(--border);
+}
+
+.progress-bar{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .6s ease}
+
+.kv-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.kv-row:last-child{border-bottom:none}
+.kv-key{color:var(--text3)}
+.kv-val{font-weight:600;color:var(--text)}
+
+.step-progress{display:flex;align-items:center;gap:0;margin-bottom:24px}
+.step-item{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:14px;left:50%;right:-50%;height:2px;background:var(--border);z-index:0}
+.step-item.done:not(:last-child)::after{background:var(--teal)}
+.step-circle{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid var(--border);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:800;color:var(--text3);
+  position:relative;z-index:1;transition:all .3s;
+}
+.step-item.done .step-circle{border-color:var(--teal);background:var(--teal);color:#fff}
+.step-item.active .step-circle{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 4px rgba(95,174,182,.15)}
+.step-label{font-size:.62rem;font-weight:600;color:var(--text3);margin-top:6px;text-align:center}
+.step-item.done .step-label,.step-item.active .step-label{color:var(--teal)}
+
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border)}
+.tl-item{position:relative;padding-bottom:20px}
+.tl-dot{
+  position:absolute;left:-24px;top:2px;
+  width:12px;height:12px;border-radius:50%;
+  border:2px solid var(--teal);background:var(--surface);
+}
+.tl-content{font-size:.8rem}
+.tl-time{font-size:.68rem;color:var(--text3);margin-top:2px}
+
+/* ── SETTINGS SPECIFIC ── */
+.settings-layout{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start}
+.settings-nav{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.settings-nav-item{
+  padding:10px 14px;font-size:.82rem;font-weight:500;
+  color:var(--text2);cursor:pointer;transition:all .15s;
+  border-left:3px solid transparent;
+  display:flex;align-items:center;gap:8px;
+}
+.settings-nav-item:hover{background:var(--bg);color:var(--text)}
+.settings-nav-item.active{color:var(--teal);background:var(--teal-bg);border-color:var(--teal);font-weight:600}
+.settings-nav-item svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── LOGIN ── */
+.login-page{
+  min-height:100vh;background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.login-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 60% at 30% 40%,rgba(95,174,182,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 70%,rgba(34,59,115,.5) 0%,transparent 50%);
+}
+.login-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(95,174,182,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(95,174,182,.05) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+.login-card{
+  background:rgba(255,255,255,.97);border-radius:16px;
+  width:100%;max-width:400px;padding:40px;
+  box-shadow:0 24px 60px rgba(0,0,0,.3);
+  position:relative;z-index:1;
+}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo-mark{
+  width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 12px;
+  box-shadow:0 8px 20px rgba(25,34,74,.3);
+}
+.login-logo-mark svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.login-title{font-size:1.2rem;font-weight:800;color:var(--navy)}
+.login-sub{font-size:.78rem;color:var(--text3);margin-top:4px}
+.login-error{
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);
+  border-radius:7px;padding:10px 12px;
+  font-size:.78rem;color:#dc2626;margin-bottom:14px;
+  display:none;
+}
+.login-error.show{display:block}
+
+/* ── ROLE PERMISSIONS ── */
+.perm-table{width:100%}
+.perm-table th{
+  padding:10px 12px;font-size:.68rem;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--text3);
+  text-align:center;background:rgba(240,244,250,.8);
+}
+.perm-table th:first-child{text-align:left}
+.perm-table td{padding:10px 12px;border-top:1px solid var(--border);font-size:.82rem;text-align:center}
+.perm-table td:first-child{text-align:left;font-weight:600;color:var(--text)}
+.perm-check{
+  width:18px;height:18px;border-radius:5px;
+  border:1.5px solid var(--border);background:var(--surface);
+  display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;
+}
+.perm-check.on{background:var(--teal);border-color:var(--teal)}
+.perm-check svg{width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .15s}
+.perm-check.on svg{opacity:1}
+
+/* ── QUOTATION LINE ITEMS ── */
+.line-items-table{width:100%;border-collapse:collapse}
+.line-items-table th{
+  padding:8px 10px;font-size:.65rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text3);background:rgba(240,244,250,.8);
+  text-align:left;
+}
+.line-items-table td{padding:6px 4px;border-top:1px solid var(--border)}
+.line-items-table .form-ctrl{padding:6px 8px;font-size:.8rem}
+.li-total{font-size:.82rem;font-weight:700;color:var(--teal);text-align:right;padding:6px 10px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .grid-cols-3-1{grid-template-columns:1fr}
+  .grid-cols-2-1{grid-template-columns:1fr}
+  .settings-layout{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);z-index:300}
+  .sidebar.mob-open{transform:translateX(0)}
+  .main{margin-left:0!important}
+  .mob-sb-btn{display:flex}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .form-row-2,.form-row-3{grid-template-columns:1fr}
+  .content{padding:16px}
+  .mob-overlay{position:fixed;inset:0;z-index:299;background:rgba(25,34,74,.4);display:none}
+  .mob-overlay.show{display:block}
+}
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page" class="login-page">
+  <div class="login-bg"></div>
+  <div class="login-grid"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="login-title">VYRA Systems</div>
+      <div class="login-sub">Admin Portal — Secure Login</div>
+    </div>
+    <div class="login-error" id="login-error">Invalid email or password. Please try again.</div>
+    <form onsubmit="doLogin(event)">
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Email Address</label>
+        <input class="form-ctrl" id="l-email" type="email" placeholder="admin@vyrasystems.com" value="admin@vyrasystems.com"/>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Password</label>
+        <input class="form-ctrl" id="l-pass" type="password" placeholder="••••••••" value="admin123"/>
+      </div>
+      <button type="submit" class="btn btn-navy" style="width:100%;justify-content:center;padding:11px">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Sign In to Admin Panel
+      </button>
+    </form>
+    <p style="text-align:center;font-size:.7rem;color:var(--text3);margin-top:16px">Demo: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d4b5b0b9bdba94a2ada6b5a7ada7a0b1b9a7fab7bbb9">[email&#160;protected]</a> / admin123</p>
+  </div>
+</div>
+
+<!-- MOBILE OVERLAY -->
+<div class="mob-overlay" id="mob-overlay" onclick="closeMobSidebar()"></div>
+
+<!-- ADMIN APP -->
+<div id="admin-app" class="app" style="display:none">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-mark">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5FAEB6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <div class="sb-logo-text">
+      <div class="sb-logo-name">VYRA</div>
+      <span class="sb-logo-sub">Admin Portal</span>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a class="sb-link active" id="sl-dashboard" onclick="showPage('dashboard')" href="#">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span class="sb-link-text">Dashboard</span>
+    </a>
+    <div class="sb-section">CRM</div>
+    <a class="sb-link" id="sl-customers" onclick="showPage('customers')" href="#">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="sb-link-text">Customers</span>
+      <span class="sb-badge" id="sb-customers-count">0</span>
+    </a>
+    <a class="sb-link" id="sl-orders" onclick="showPage('orders')" href="#">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span class="sb-link-text">Orders</span>
+      <span class="sb-badge" id="sb-orders-count">0</span>
+    </a>
+    <a class="sb-link" id="sl-quotations" onclick="showPage('quotations')" href="#">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span class="sb-link-text">Quotations</span>
+    </a>
+    <a class="sb-link" id="sl-invoices" onclick="showPage('invoices')" href="#">
+      <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span class="sb-link-text">Invoices & Receipts</span>
+    </a>
+    <div class="sb-section">Analytics</div>
+    <a class="sb-link" id="sl-reports" onclick="showPage('reports')" href="#">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="sb-link-text">Reports</span>
+    </a>
+    <div class="sb-section">Settings</div>
+    <a class="sb-link" id="sl-site-settings" onclick="showPage('site-settings')" href="#">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14M8.46 8.46a5 5 0 0 0 0 7.07"/></svg>
+      <span class="sb-link-text">Site Settings</span>
+    </a>
+    <a class="sb-link" id="sl-users" onclick="showPage('users')" href="#">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="sb-link-text">Users</span>
+    </a>
+    <a class="sb-link" id="sl-roles" onclick="showPage('roles')" href="#">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="sb-link-text">Roles & Permissions</span>
+    </a>
+  </nav>
+  <div class="sb-user">
+    <div class="sb-user-inner" onclick="showPage('users')">
+      <div class="sb-avatar">A</div>
+      <div class="sb-logo-text">
+        <div class="sb-user-name">Admin User</div>
+        <div class="sb-user-role">Administrator</div>
+      </div>
+    </div>
+    <a class="sb-link" href="#" onclick="doLogout()" style="margin-top:4px;color:rgba(255,100,100,.7)">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span class="sb-link-text">Sign Out</span>
+    </a>
+  </div>
+  <div class="sb-toggle" onclick="toggleSidebar()" id="sb-toggle">
+    <svg viewBox="0 0 24 24" id="sb-toggle-icon"><path d="M15 18l-6-6 6-6"/></svg>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-left">
+      <button class="tb-btn mob-sb-btn" onclick="openMobSidebar()">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div>
+        <div class="tb-page-title" id="tb-title">Dashboard</div>
+        <div class="tb-breadcrumb">VYRA Systems &rsaquo; <span id="tb-crumb">Overview</span></div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <button class="tb-btn" title="Search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="tb-btn" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <a class="btn btn-outline btn-sm" href="index.html" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        View Site
+      </a>
+    </div>
+  </div>
+
+  <!-- CONTENT AREA -->
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="pg-title">Dashboard</div>
+      <div class="pg-sub">Welcome back! Here's what's happening at VYRA Systems.</div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(95,174,182,.12)">
+            <svg style="stroke:var(--teal)" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div>
+            <div class="stat-label">Total Clients</div>
+            <div class="stat-value" id="dash-clients">0</div>
+            <div class="stat-trend trend-up">&#x2191; 12% this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(59,130,246,.1)">
+            <svg style="stroke:#3b82f6" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <div>
+            <div class="stat-label">Active Orders</div>
+            <div class="stat-value" id="dash-orders">0</div>
+            <div class="stat-trend trend-up">&#x2191; 8% this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(245,158,11,.1)">
+            <svg style="stroke:#f59e0b" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div>
+            <div class="stat-label">Revenue (EGP)</div>
+            <div class="stat-value" id="dash-revenue">0</div>
+            <div class="stat-trend trend-up">&#x2191; 18% vs last month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(34,197,94,.1)">
+            <svg style="stroke:#22c55e" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div>
+            <div class="stat-label">Pending Invoices</div>
+            <div class="stat-value" id="dash-invoices">0</div>
+            <div class="stat-trend trend-neutral">&#x2015; No change</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-cols-3-1" style="gap:16px">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <!-- Revenue Chart -->
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">Monthly Revenue</div><div class="card-sub">EGP — last 7 months</div></div>
+              <span class="badge badge-teal">2025</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-bar-wrap" id="revenue-chart">
+                <div class="chart-bar-col"><div class="chart-bar-val">48k</div><div class="chart-bar" style="height:55%"></div><div class="chart-bar-lbl">Jan</div></div>
+                <div class="chart-bar-col"><div class="chart-bar-val">62k</div><div class="chart-bar" style="height:72%"></div><div class="chart-bar-lbl">Feb</div></div>
+                <div class="chart-bar-col"><div class="chart-bar-val">55k</div><div class="chart-bar" style="height:63%"></div><div class="chart-bar-lbl">Mar</div></div>
+                <div class="chart-bar-col"><div class="chart-bar-val">78k</div><div class="chart-bar" style="height:89%"></div><div class="chart-bar-lbl">Apr</div></div>
+                <div class="chart-bar-col"><div class="chart-bar-val">91k</div><div class="chart-bar" style="height:100%"></div><div class="chart-bar-lbl">May</div></div>
+                <div class="chart-bar-col"><div class="chart-bar-val">84k</div><div class="chart-bar" style="height:92%"></div><div class="chart-bar-lbl">Jun</div></div>
+                <div class="chart-bar-col"><div class="chart-bar-val">102k</div><div class="chart-bar" style="height:115%;background:linear-gradient(180deg,#5FAEB6,#7CC6CC)"></div><div class="chart-bar-lbl">Jul</div></div>
+              </div>
+            </div>
+          </div>
+          <!-- Recent Orders -->
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">Recent Orders</div><div class="card-sub">Latest 5 orders</div></div>
+              <button class="btn btn-outline btn-sm" onclick="showPage('orders')">View All</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Order #</th><th>Client</th><th>Status</th><th>Amount</th><th>Date</th></tr></thead>
+                <tbody id="dash-orders-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- Right column -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <!-- Service Mix -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">Service Mix</div></div>
+            <div class="card-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+              <div class="donut-wrap">
+                <svg viewBox="0 0 36 36" style="transform:rotate(-90deg)">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EEF3FA" stroke-width="3.5"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#5FAEB6" stroke-width="3.5" stroke-dasharray="42 58" stroke-dashoffset="0"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#223B73" stroke-width="3.5" stroke-dasharray="28 72" stroke-dashoffset="-42"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7CC6CC" stroke-width="3.5" stroke-dasharray="18 82" stroke-dashoffset="-70"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#8A9CC0" stroke-width="3.5" stroke-dasharray="12 88" stroke-dashoffset="-88"/>
+                </svg>
+                <div class="donut-label">100%<span>Total</span></div>
+              </div>
+              <div style="flex:1">
+                <div class="legend-item"><div class="legend-dot" style="background:#5FAEB6"></div><span class="legend-label">CCTV</span><span class="legend-val">42%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#223B73"></div><span class="legend-label">Networking</span><span class="legend-val">28%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#7CC6CC"></div><span class="legend-label">Sound</span><span class="legend-val">18%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#8A9CC0"></div><span class="legend-label">Automation</span><span class="legend-val">12%</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- Quick Actions -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">Quick Actions</div></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('customer-modal')">
+                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                Add Customer
+              </button>
+              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('order-modal')">
+                <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                New Order
+              </button>
+              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('quotation-modal')">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Create Quotation
+              </button>
+              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('invoice-modal')">
+                <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                New Invoice
+              </button>
+            </div>
+          </div>
+          <!-- Order Pipeline -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">Order Pipeline</div></div>
+            <div class="card-body">
+              <div style="display:flex;flex-direction:column;gap:10px" id="pipeline-stats"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CUSTOMERS ══ -->
+    <div class="page" id="page-customers">
+      <div class="pg-title">Customers</div>
+      <div class="pg-sub">Manage your client database</div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" placeholder="Search clients..." oninput="filterCustomers(this.value)" id="customer-search"/>
+        </div>
+        <div class="ml-auto" style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="openModal('customer-modal')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Customer
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Contact Person</th><th>Phone</th><th>Email</th><th>Orders</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="customers-table"></tbody>
+          </table>
+        </div>
+        <div class="card-footer" style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:.75rem;color:var(--text3)" id="customers-count-label"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ORDERS ══ -->
+    <div class="page" id="page-orders">
+      <div class="pg-title">Orders</div>
+      <div class="pg-sub">Track and manage all project orders</div>
+      <!-- Pipeline chips -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px" id="order-pipeline-cards"></div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" placeholder="Search orders..." oninput="filterOrders(this.value)" id="order-search"/>
+        </div>
+        <select class="filter-select" onchange="filterOrderStatus(this.value)" id="order-status-filter">
+          <option value="">All Statuses</option>
+          <option value="quotation">Quotation</option>
+          <option value="approved">Approved</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+        <div class="ml-auto" style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="openModal('order-modal')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Order
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Order #</th><th>Client</th><th>Description</th><th>Status</th><th>Amount</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="orders-table"></tbody>
+          </table>
+        </div>
+        <div class="card-footer"><span style="font-size:.75rem;color:var(--text3)" id="orders-count-label"></span></div>
+      </div>
+    </div>
+
+    <!-- ══ QUOTATIONS ══ -->
+    <div class="page" id="page-quotations">
+      <div class="pg-title">Quotations</div>
+      <div class="pg-sub">Create and manage project quotations with line items</div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" placeholder="Search quotations..." oninput="filterQuotations(this.value)"/>
+        </div>
+        <div class="ml-auto">
+          <button class="btn btn-primary" onclick="openModal('quotation-modal')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Quotation
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Quot. #</th><th>Client</th><th>Items</th><th>Materials</th><th>Labor</th><th>Total</th><th>Valid Until</th><th>Actions</th></tr></thead>
+            <tbody id="quotations-table"></tbody>
+          </table>
+        </div>
+        <div class="card-footer"><span style="font-size:.75rem;color:var(--text3)" id="quotations-count-label"></span></div>
+      </div>
+    </div>
+
+    <!-- ══ INVOICES ══ -->
+    <div class="page" id="page-invoices">
+      <div class="pg-title">Invoices & Receipts</div>
+      <div class="pg-sub">Track payments, invoices and generate receipts</div>
+      <!-- Status summary -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+        <div class="card" style="padding:16px;text-align:center">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--red)" id="inv-unpaid">0</div>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:3px">Unpaid Invoices</div>
+        </div>
+        <div class="card" style="padding:16px;text-align:center">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--amber)" id="inv-partial">0</div>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:3px">Partially Paid</div>
+        </div>
+        <div class="card" style="padding:16px;text-align:center">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--green)" id="inv-paid">0</div>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:3px">Fully Paid</div>
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:16px;background:var(--bg2);border-radius:8px;padding:3px;width:fit-content">
+        <button class="btn btn-primary btn-sm" id="inv-tab-inv" onclick="switchInvTab('invoices')">Invoices</button>
+        <button class="btn btn-ghost btn-sm" id="inv-tab-rec" onclick="switchInvTab('receipts')">Receipts</button>
+      </div>
+      <div id="inv-panel-invoices">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" placeholder="Search invoices..."/>
+          </div>
+          <select class="filter-select" onchange="filterInvoiceStatus(this.value)">
+            <option value="">All Statuses</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="partial">Partial</option>
+            <option value="paid">Paid</option>
+          </select>
+          <div class="ml-auto" style="display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="openModal('invoice-modal')">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Invoice
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Invoice #</th><th>Client</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th><th>Due Date</th><th>Actions</th></tr></thead>
+              <tbody id="invoices-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div id="inv-panel-receipts" style="display:none">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" placeholder="Search receipts..."/>
+          </div>
+          <div class="ml-auto">
+            <button class="btn btn-primary" onclick="openModal('receipt-modal')">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Record Payment
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Receipt #</th><th>Invoice</th><th>Client</th><th>Amount</th><th>Method</th><th>Date</th><th>Reference</th></tr></thead>
+              <tbody id="receipts-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ REPORTS ══ -->
+    <div class="page" id="page-reports">
+      <div class="pg-title">Reports & Analytics</div>
+      <div class="pg-sub">Business insights and performance metrics</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(95,174,182,.12)"><svg style="stroke:var(--teal)" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div><div class="stat-label">Total Revenue</div><div class="stat-value">520k</div><div class="stat-trend trend-up">&#x2191; 22% YoY</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(245,158,11,.1)"><svg style="stroke:#f59e0b" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <div><div class="stat-label">Outstanding</div><div class="stat-value">84k</div><div class="stat-trend trend-down">&#x2193; 3 invoices</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(34,197,94,.1)"><svg style="stroke:var(--green)" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div><div class="stat-label">Completed Projects</div><div class="stat-value">86</div><div class="stat-trend trend-up">&#x2191; 14 this month</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(139,92,246,.1)"><svg style="stroke:var(--purple)" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div><div class="stat-label">Active Clients</div><div class="stat-value">47</div><div class="stat-trend trend-up">&#x2191; 5 new</div></div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <!-- Revenue vs Cost -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Revenue vs Expenses</div><div class="card-sub">Last 6 months (EGP '000)</div></div>
+          <div class="card-body">
+            <div style="display:flex;gap:16px;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--text2)"><div style="width:10px;height:10px;border-radius:2px;background:var(--teal)"></div>Revenue</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--text2)"><div style="width:10px;height:10px;border-radius:2px;background:var(--navy2)"></div>Expenses</div>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:8px;height:120px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                <div style="width:100%;display:flex;gap:2px;align-items:flex-end;height:100px">
+                  <div style="flex:1;background:var(--teal);border-radius:3px 3px 0 0;height:55%;opacity:.85"></div>
+                  <div style="flex:1;background:var(--navy2);border-radius:3px 3px 0 0;height:35%;opacity:.85"></div>
+                </div>
+                <div style="font-size:.6rem;color:var(--text3)">Feb</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                <div style="width:100%;display:flex;gap:2px;align-items:flex-end;height:100px">
+                  <div style="flex:1;background:var(--teal);border-radius:3px 3px 0 0;height:63%;opacity:.85"></div>
+                  <div style="flex:1;background:var(--navy2);border-radius:3px 3px 0 0;height:40%;opacity:.85"></div>
+                </div>
+                <div style="font-size:.6rem;color:var(--text3)">Mar</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                <div style="width:100%;display:flex;gap:2px;align-items:flex-end;height:100px">
+                  <div style="flex:1;background:var(--teal);border-radius:3px 3px 0 0;height:89%;opacity:.85"></div>
+                  <div style="flex:1;background:var(--navy2);border-radius:3px 3px 0 0;height:55%;opacity:.85"></div>
+                </div>
+                <div style="font-size:.6rem;color:var(--text3)">Apr</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                <div style="width:100%;display:flex;gap:2px;align-items:flex-end;height:100px">
+                  <div style="flex:1;background:var(--teal);border-radius:3px 3px 0 0;height:100%;opacity:.85"></div>
+                  <div style="flex:1;background:var(--navy2);border-radius:3px 3px 0 0;height:60%;opacity:.85"></div>
+                </div>
+                <div style="font-size:.6rem;color:var(--text3)">May</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                <div style="width:100%;display:flex;gap:2px;align-items:flex-end;height:100px">
+                  <div style="flex:1;background:var(--teal);border-radius:3px 3px 0 0;height:92%;opacity:.85"></div>
+                  <div style="flex:1;background:var(--navy2);border-radius:3px 3px 0 0;height:58%;opacity:.85"></div>
+                </div>
+                <div style="font-size:.6rem;color:var(--text3)">Jun</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                <div style="width:100%;display:flex;gap:2px;align-items:flex-end;height:100px">
+                  <div style="flex:1;background:linear-gradient(180deg,var(--teal),var(--teal2));border-radius:3px 3px 0 0;height:115%;opacity:.9"></div>
+                  <div style="flex:1;background:var(--navy2);border-radius:3px 3px 0 0;height:62%;opacity:.85"></div>
+                </div>
+                <div style="font-size:.6rem;color:var(--text3)">Jul</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Payment Methods -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Payment Methods</div><div class="card-sub">Distribution by type</div></div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+              <div class="donut-wrap" style="width:100px;height:100px">
+                <svg viewBox="0 0 36 36" style="transform:rotate(-90deg)">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EEF3FA" stroke-width="4"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#5FAEB6" stroke-width="4" stroke-dasharray="38 62"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#223B73" stroke-width="4" stroke-dasharray="32 68" stroke-dashoffset="-38"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="20 80" stroke-dashoffset="-70"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#8A9CC0" stroke-width="4" stroke-dasharray="10 90" stroke-dashoffset="-90"/>
+                </svg>
+                <div class="donut-label" style="font-size:.85rem">520k<span>EGP</span></div>
+              </div>
+              <div style="flex:1;min-width:120px">
+                <div class="legend-item"><div class="legend-dot" style="background:#5FAEB6"></div><span class="legend-label">Cash</span><span class="legend-val">38%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#223B73"></div><span class="legend-label">Bank Transfer</span><span class="legend-val">32%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div><span class="legend-label">Check</span><span class="legend-val">20%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#8A9CC0"></div><span class="legend-label">Card</span><span class="legend-val">10%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Service Revenue Breakdown -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Revenue by Service</div><div class="card-sub">Year-to-date (EGP)</div></div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px"><span style="font-weight:600">CCTV & Security</span><span style="font-weight:700;color:var(--teal)">218,400 EGP</span></div><div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px"><span style="font-weight:600">Networking & IT</span><span style="font-weight:700;color:var(--teal)">145,600 EGP</span></div><div class="progress-bar"><div class="progress-fill" style="width:67%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px"><span style="font-weight:600">Sound & Audio</span><span style="font-weight:700;color:var(--teal)">93,600 EGP</span></div><div class="progress-bar"><div class="progress-fill" style="width:43%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px"><span style="font-weight:600">Smart Automation</span><span style="font-weight:700;color:var(--teal)">62,400 EGP</span></div><div class="progress-bar"><div class="progress-fill" style="width:29%"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SITE SETTINGS ══ -->
+    <div class="page" id="page-site-settings">
+      <div class="pg-title">Site Settings</div>
+      <div class="pg-sub">Control public website content in real-time</div>
+      <div class="settings-layout">
+        <div class="settings-nav">
+          <div class="settings-nav-item active" onclick="switchSettingsTab('hero',this)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+            Hero Section
+          </div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('stats',this)">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Stats Bar
+          </div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('company',this)">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Company Info
+          </div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('seo',this)">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            SEO & Meta
+          </div>
+        </div>
+        <div>
+          <div id="settings-tab-hero">
+            <div class="card">
+              <div class="card-header" style="justify-content:space-between">
+                <div><div class="card-title">Hero Section</div><div class="card-sub">Main banner on the homepage</div></div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:.7rem;color:var(--green);font-weight:600">&#x25cf; Live</span>
+                  <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Changes</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-row form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Hero Title <span>*</span></label>
+                    <input class="form-ctrl" id="s-hero-title" value="Engineering Tomorrow's Environments"/>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Primary CTA Button</label>
+                    <input class="form-ctrl" id="s-cta-primary" value="Get Free Quote"/>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Hero Subtitle</label>
+                    <textarea class="form-ctrl" id="s-hero-sub" rows="3">We engineer high-performance technology environments &mdash; seamless connectivity, robust security, and intelligent automation for Egypt's leading businesses.</textarea>
+                  </div>
+                </div>
+                <div class="form-row form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Secondary CTA Button</label>
+                    <input class="form-ctrl" id="s-cta-secondary" value="Explore Services"/>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Eyebrow Label</label>
+                    <input class="form-ctrl" value="Egypt's Technology Integrator"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="settings-tab-stats" style="display:none">
+            <div class="card">
+              <div class="card-header" style="justify-content:space-between">
+                <div><div class="card-title">Stats Bar</div><div class="card-sub">4 key metrics shown on homepage</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Changes</button>
+              </div>
+              <div class="card-body">
+                <div class="form-row form-row-2">
+                  <div class="form-group"><label class="form-label">Years Experience</label><input class="form-ctrl" value="10+"/></div>
+                  <div class="form-group"><label class="form-label">Happy Clients</label><input class="form-ctrl" value="500+"/></div>
+                  <div class="form-group"><label class="form-label">Projects Completed</label><input class="form-ctrl" value="1,000+"/></div>
+                  <div class="form-group"><label class="form-label">Support Label</label><input class="form-ctrl" value="24/7"/></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="settings-tab-company" style="display:none">
+            <div class="card">
+              <div class="card-header" style="justify-content:space-between">
+                <div><div class="card-title">Company Information</div><div class="card-sub">Appears in footer and contact page</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Changes</button>
+              </div>
+              <div class="card-body">
+                <div class="form-row form-row-2">
+                  <div class="form-group"><label class="form-label">Company Name</label><input class="form-ctrl" value="VYRA Systems"/></div>
+                  <div class="form-group"><label class="form-label">Phone Number</label><input class="form-ctrl" value="+20 100 000 0000"/></div>
+                  <div class="form-group"><label class="form-label">Email Address</label><input class="form-ctrl" value="info@vyrasystems.com"/></div>
+                  <div class="form-group"><label class="form-label">Office Address</label><input class="form-ctrl" value="New Cairo, 5th Settlement"/></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">About Description</label><textarea class="form-ctrl" rows="3">VYRA Systems is Egypt's premier provider of integrated security and networking solutions.</textarea></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="settings-tab-seo" style="display:none">
+            <div class="card">
+              <div class="card-header" style="justify-content:space-between">
+                <div><div class="card-title">SEO & Meta Tags</div><div class="card-sub">Search engine optimization settings</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Changes</button>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">Page Title</label><input class="form-ctrl" value="VYRA Systems &mdash; Engineering Tomorrow's Environments"/></div>
+                  <div class="form-group"><label class="form-label">Meta Description</label><textarea class="form-ctrl" rows="2">VYRA Systems engineers high-performance technology environments &mdash; networking, CCTV, sound systems and smart automation for Egypt's leading businesses.</textarea></div>
+                  <div class="form-group"><label class="form-label">Keywords</label><input class="form-ctrl" value="CCTV Egypt, Networking Egypt, Security Systems Cairo, Smart Home Egypt"/></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ USERS ══ -->
+    <div class="page" id="page-users">
+      <div class="pg-title">User Management</div>
+      <div class="pg-sub">Manage admin portal users and their access</div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" placeholder="Search users..."/>
+        </div>
+        <div class="ml-auto">
+          <button class="btn btn-primary" onclick="openModal('user-modal')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add User
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Last Active</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="users-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ROLES ══ -->
+    <div class="page" id="page-roles">
+      <div class="pg-title">Roles & Permissions</div>
+      <div class="pg-sub">Control which tabs each role can access</div>
+      <div class="grid-2">
+        <!-- Roles list -->
+        <div class="card">
+          <div class="card-header" style="justify-content:space-between">
+            <div class="card-title">Available Roles</div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('role-modal')">+ Add Role</button>
+          </div>
+          <div class="card-body" style="padding:8px">
+            <div id="roles-list"></div>
+          </div>
+        </div>
+        <!-- Permissions matrix -->
+        <div class="card">
+          <div class="card-header" style="justify-content:space-between">
+            <div><div class="card-title">Tab Permissions</div><div class="card-sub" id="perm-role-name">Select a role to edit</div></div>
+            <button class="btn btn-primary btn-sm" onclick="savePermissions()">Save</button>
+          </div>
+          <div class="card-body" style="padding:12px">
+            <table class="perm-table" id="perm-table">
+              <thead><tr><th>Tab / Module</th><th>Access</th></tr></thead>
+              <tbody id="perm-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /admin-app -->
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- Customer Modal -->
+<div class="modal-overlay" id="customer-modal">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <div class="modal-title" id="customer-modal-title">Add Customer</div>
+      <div class="modal-close" onclick="closeModal('customer-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cm-id"/>
+      <div class="form-row form-row-2">
+        <div class="form-group" id="fg-cm-name">
+          <label class="form-label">Company / Customer Name <span>*</span></label>
+          <input class="form-ctrl" id="cm-name" placeholder="Acme Corporation"/>
+          <div class="form-error">Name is required</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Person</label>
+          <input class="form-ctrl" id="cm-contact" placeholder="Ahmed Hassan"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input class="form-ctrl" id="cm-phone" placeholder="+20 100 000 0000" type="tel"/>
+        </div>
+        <div class="form-group" id="fg-cm-email">
+          <label class="form-label">Email</label>
+          <input class="form-ctrl" id="cm-email" placeholder="info@company.com" type="email"/>
+          <div class="form-error">Invalid email</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input class="form-ctrl" id="cm-address" placeholder="Cairo, Egypt"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('customer-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Modal -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <div class="modal-title" id="order-modal-title">New Order</div>
+      <div class="modal-close" onclick="closeModal('order-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="om-id"/>
+      <div class="form-row form-row-2">
+        <div class="form-group" id="fg-om-customer">
+          <label class="form-label">Customer <span>*</span></label>
+          <select class="form-ctrl" id="om-customer"><option value="">Select customer...</option></select>
+          <div class="form-error">Customer is required</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-ctrl" id="om-status">
+            <option value="quotation">Quotation</option>
+            <option value="approved">Approved</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (EGP)</label>
+          <input class="form-ctrl" id="om-amount" type="number" step="0.01" placeholder="0.00"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service Type</label>
+          <select class="form-ctrl" id="om-service">
+            <option value="">Select service...</option>
+            <option>Networking & IT Infrastructure</option>
+            <option>Advanced CCTV & Security</option>
+            <option>Sound & Audio Systems</option>
+            <option>Smart Home & Business Automation</option>
+            <option>Multiple Services</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-ctrl" id="om-desc" rows="3" placeholder="Project description..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('order-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder()">Save Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quotation Modal -->
+<div class="modal-overlay" id="quotation-modal">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <div class="modal-title">New Quotation</div>
+      <div class="modal-close" onclick="closeModal('quotation-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row form-row-3">
+        <div class="form-group" id="fg-qm-customer">
+          <label class="form-label">Customer <span>*</span></label>
+          <select class="form-ctrl" id="qm-customer"><option value="">Select customer...</option></select>
+          <div class="form-error">Required</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valid Until</label>
+          <input class="form-ctrl" id="qm-valid" type="date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input class="form-ctrl" id="qm-notes" placeholder="Optional notes..."/>
+        </div>
+      </div>
+      <!-- Line Items -->
+      <div style="margin-top:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:.82rem;font-weight:700;color:var(--text)">Line Items</div>
+          <button class="btn btn-outline btn-sm" onclick="addLineItem()">+ Add Item</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="line-items-table" style="width:100%">
+            <thead><tr><th style="width:35%">Description</th><th style="width:12%">Type</th><th style="width:10%">Qty</th><th style="width:14%">Unit Price</th><th style="width:14%">Total</th><th style="width:6%"></th></tr></thead>
+            <tbody id="line-items-body"></tbody>
+          </table>
+        </div>
+        <!-- Totals -->
+        <div style="margin-top:12px;background:var(--bg);border-radius:8px;padding:14px">
+          <div class="kv-row"><span class="kv-key">Materials Cost</span><span class="kv-val" id="q-mat-total">EGP 0.00</span></div>
+          <div class="kv-row"><span class="kv-key">Labor Cost</span><span class="kv-val" id="q-lab-total">EGP 0.00</span></div>
+          <div class="kv-row" style="border-bottom:none;padding-top:10px"><span style="font-weight:800;font-size:.9rem">Grand Total</span><span style="font-weight:900;font-size:1rem;color:var(--teal)" id="q-grand-total">EGP 0.00</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('quotation-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuotation()">Create Quotation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invoice Modal -->
+<div class="modal-overlay" id="invoice-modal">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <div class="modal-title">New Invoice</div>
+      <div class="modal-close" onclick="closeModal('invoice-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row form-row-2">
+        <div class="form-group" id="fg-im-customer">
+          <label class="form-label">Customer <span>*</span></label>
+          <select class="form-ctrl" id="im-customer"><option value="">Select customer...</option></select>
+          <div class="form-error">Required</div>
+        </div>
+        <div class="form-group" id="fg-im-amount">
+          <label class="form-label">Amount (EGP) <span>*</span></label>
+          <input class="form-ctrl" id="im-amount" type="number" step="0.01" placeholder="0.00"/>
+          <div class="form-error">Amount required</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input class="form-ctrl" id="im-due" type="date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Linked Order</label>
+          <select class="form-ctrl" id="im-order"><option value="">None</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('invoice-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInvoice()">Create Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal-overlay" id="receipt-modal">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <div class="modal-title">Record Payment</div>
+      <div class="modal-close" onclick="closeModal('receipt-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row form-row-2">
+        <div class="form-group" id="fg-rm-invoice">
+          <label class="form-label">Invoice <span>*</span></label>
+          <select class="form-ctrl" id="rm-invoice"><option value="">Select invoice...</option></select>
+          <div class="form-error">Required</div>
+        </div>
+        <div class="form-group" id="fg-rm-amount">
+          <label class="form-label">Amount (EGP) <span>*</span></label>
+          <input class="form-ctrl" id="rm-amount" type="number" step="0.01" placeholder="0.00"/>
+          <div class="form-error">Amount required</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Method <span>*</span></label>
+          <select class="form-ctrl" id="rm-method">
+            <option value="cash">Cash</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="check">Check</option>
+            <option value="card">Card</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Date <span>*</span></label>
+          <input class="form-ctrl" id="rm-date" type="date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reference / Cheque #</label>
+          <input class="form-ctrl" id="rm-ref" placeholder="REF-001"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input class="form-ctrl" id="rm-notes" placeholder="Optional notes..."/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('receipt-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveReceipt()">Record Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Add User</div>
+      <div class="modal-close" onclick="closeModal('user-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name <span>*</span></label>
+          <input class="form-ctrl" id="um-name" placeholder="Ahmed Hassan"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email <span>*</span></label>
+          <input class="form-ctrl" id="um-email" type="email" placeholder="user@vyrasystems.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password <span>*</span></label>
+          <input class="form-ctrl" id="um-pass" type="password" placeholder="Min. 8 characters"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-ctrl" id="um-role">
+            <option value="admin">Admin — Full Access</option>
+            <option value="user">User — Limited Access</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('user-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Create User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Role Modal -->
+<div class="modal-overlay" id="role-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Add Role</div>
+      <div class="modal-close" onclick="closeModal('role-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Role Name <span>*</span></label><input class="form-ctrl" id="rm2-name" placeholder="e.g. Salesperson"/></div>
+        <div class="form-group"><label class="form-label">Description</label><input class="form-ctrl" id="rm2-desc" placeholder="Brief description..."/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('role-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRole()">Create Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Quotation Modal -->
+<div class="modal-overlay" id="view-quotation-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="vqm-title">Quotation Details</div>
+      <div class="modal-close" onclick="closeModal('view-quotation-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="modal-body" id="vqm-body"></div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="confirm-overlay" id="confirm-delete">
+  <div class="confirm-box">
+    <div class="confirm-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
+    <div class="confirm-title">Delete Record?</div>
+    <div class="confirm-msg" id="confirm-msg">This action cannot be undone.</div>
+    <div class="confirm-btns">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" onclick="execDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ═══════════════════════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════════════════════
+const DB = {
+  customers: [
+    {id:1,name:"Cairo Grand Hotel",contact:"Mahmoud Hassan",phone:"+20 100 111 1111",email:"ops@cairogrand.com",address:"Zamalek, Cairo",created:"2024-01-15"},
+    {id:2,name:"Bank of Alexandria",contact:"Sara Khalil",phone:"+20 100 222 2222",email:"it@bofa.com.eg",address:"Alexandria",created:"2024-02-20"},
+    {id:3,name:"Maadi Mall Management",contact:"Omar Farid",phone:"+20 100 333 3333",email:"admin@maadimall.com",address:"Maadi, Cairo",created:"2024-03-10"},
+    {id:4,name:"Nile Pharma Co.",contact:"Nour Ibrahim",phone:"+20 100 444 4444",email:"nour@nilepharm.com",address:"10th of Ramadan City",created:"2024-04-05"},
+    {id:5,name:"New Capital Gov Office",contact:"Karim Mostafa",phone:"+20 100 555 5555",email:"it@newcap.gov.eg",address:"New Administrative Capital",created:"2024-05-12"},
+    {id:6,name:"Cairo University Hospital",contact:"Dina Samir",phone:"+20 100 666 6666",email:"dina@cuh.edu.eg",address:"Giza",created:"2024-06-18"},
+  ],
+  orders: [
+    {id:1,num:"ORD-001",customer_id:1,service:"Advanced CCTV & Security",status:"completed",amount:148000,desc:"Full CCTV overhaul - 148 cameras",created:"2024-01-20"},
+    {id:2,num:"ORD-002",customer_id:2,service:"Networking & IT Infrastructure",status:"completed",amount:85000,desc:"Branch network upgrade - Cat6A",created:"2024-02-25"},
+    {id:3,num:"ORD-003",customer_id:3,service:"Sound & Audio Systems",status:"in_progress",amount:62000,desc:"PA & BGM system - 8 zones",created:"2024-03-15"},
+    {id:4,num:"ORD-004",customer_id:5,service:"Networking & IT Infrastructure",status:"in_progress",amount:210000,desc:"Government campus Wi-Fi deployment",created:"2024-04-10"},
+    {id:5,num:"ORD-005",customer_id:4,service:"Advanced CCTV & Security",status:"approved",amount:95000,desc:"Perimeter surveillance system",created:"2024-05-18"},
+    {id:6,num:"ORD-006",customer_id:6,service:"Networking & IT Infrastructure",status:"quotation",amount:180000,desc:"Hospital clinical network",created:"2024-06-22"},
+  ],
+  quotations: [
+    {id:1,num:"Q-001",customer_id:1,items:[{desc:"IP Cameras (Hikvision 4K)",type:"material",qty:148,price:450,total:66600},{desc:"NVR Server 16TB",type:"material",qty:2,price:8500,total:17000},{desc:"Installation & Cabling",type:"labor",qty:1,price:35000,total:35000},{desc:"System Configuration",type:"labor",qty:1,price:12000,total:12000}],mat:83600,lab:47000,total:130600,valid:"2024-02-28",notes:"Prices valid for 30 days",created:"2024-01-18"},
+    {id:2,num:"Q-002",customer_id:2,items:[{desc:"Cat6A Cable (per meter)",type:"material",qty:2400,price:12,total:28800},{desc:"Cisco Catalyst Switches x8",type:"material",qty:8,price:3200,total:25600},{desc:"Structured Cabling Installation",type:"labor",qty:1,price:22000,total:22000}],mat:54400,lab:22000,total:76400,valid:"2024-03-15",notes:"",created:"2024-02-22"},
+    {id:3,num:"Q-003",customer_id:3,items:[{desc:"Bosch Ceiling Speakers",type:"material",qty:80,price:320,total:25600},{desc:"TOA Mixer Amplifier",type:"material",qty:4,price:4200,total:16800},{desc:"Audio Installation",type:"labor",qty:1,price:18000,total:18000}],mat:42400,lab:18000,total:60400,valid:"2024-04-10",notes:"Emergency PA included",created:"2024-03-12"},
+  ],
+  invoices: [
+    {id:1,num:"INV-001",customer_id:1,order_id:1,amount:148000,paid:148000,status:"paid",due:"2024-02-28",created:"2024-01-25"},
+    {id:2,num:"INV-002",customer_id:2,order_id:2,amount:85000,paid:50000,status:"partial",due:"2024-03-31",created:"2024-02-28"},
+    {id:3,num:"INV-003",customer_id:3,order_id:3,amount:62000,paid:0,status:"unpaid",due:"2024-04-30",created:"2024-03-20"},
+    {id:4,num:"INV-004",customer_id:5,order_id:4,amount:210000,paid:105000,status:"partial",due:"2024-05-31",created:"2024-04-15"},
+    {id:5,num:"INV-005",customer_id:4,order_id:5,amount:95000,paid:0,status:"unpaid",due:"2024-06-30",created:"2024-05-22"},
+  ],
+  receipts: [
+    {id:1,num:"REC-001",invoice_id:1,amount:148000,method:"bank_transfer",date:"2024-02-15",ref:"TRF-240215",notes:"Full payment",created:"2024-02-15"},
+    {id:2,num:"REC-002",invoice_id:2,amount:50000,method:"check",date:"2024-03-10",ref:"CHK-8821",notes:"First installment",created:"2024-03-10"},
+    {id:3,num:"REC-003",invoice_id:4,amount:105000,method:"bank_transfer",date:"2024-04-20",ref:"TRF-240420",notes:"50% advance",created:"2024-04-20"},
+  ],
+  users: [
+    {id:1,name:"Admin User",email:"admin@vyrasystems.com",role:"admin",status:"active",lastActive:"Just now"},
+    {id:2,name:"Ahmed Hassan",email:"ahmed@vyrasystems.com",role:"admin",status:"active",lastActive:"2h ago"},
+    {id:3,name:"Sara Nakhlawy",email:"sara@vyrasystems.com",role:"user",status:"active",lastActive:"1d ago"},
+    {id:4,name:"Omar Farid",email:"omar@vyrasystems.com",role:"user",status:"inactive",lastActive:"5d ago"},
+  ],
+  roles: [
+    {id:1,name:"Administrator",desc:"Full access to all modules",color:"navy"},
+    {id:2,name:"Sales Manager",desc:"Access to CRM and quotations",color:"teal"},
+    {id:3,name:"Finance",desc:"Invoices, receipts and reports",color:"purple"},
+    {id:4,name:"Technician",desc:"View orders and site settings",color:"blue"},
+  ],
+  permissions: {
+    1:{dashboard:true,customers:true,orders:true,quotations:true,invoices:true,reports:true,"site-settings":true,users:true,roles:true},
+    2:{dashboard:true,customers:true,orders:true,quotations:true,invoices:false,reports:true,"site-settings":false,users:false,roles:false},
+    3:{dashboard:true,customers:false,orders:false,quotations:false,invoices:true,reports:true,"site-settings":false,users:false,roles:false},
+    4:{dashboard:true,customers:false,orders:true,quotations:false,invoices:false,reports:false,"site-settings":true,users:false,roles:false},
+  }
+};
+
+let nextIds = {customer:7,order:7,quotation:4,invoice:6,receipt:4,user:5};
+let deleteCallback = null;
+let selectedRoleId = 1;
+let currentInvTab = "invoices";
+let orderFilterStatus = "";
+
+// ── COUNTERS
+function genNum(prefix,n){return prefix+"-"+String(n).padStart(3,"0")}
+
+// ── AUTH
+function doLogin(e){
+  e.preventDefault();
+  const em = document.getElementById("l-email").value;
+  const pw = document.getElementById("l-pass").value;
+  if(em && pw.length >= 6){
+    document.getElementById("login-page").style.display="none";
+    document.getElementById("admin-app").style.display="flex";
+    initApp();
+  } else {
+    document.getElementById("login-error").classList.add("show");
+  }
+}
+function doLogout(){
+  document.getElementById("admin-app").style.display="none";
+  document.getElementById("login-page").style.display="flex";
+}
+
+// ── SIDEBAR
+function toggleSidebar(){
+  const sb=document.getElementById("sidebar");
+  const icon=document.getElementById("sb-toggle-icon");
+  sb.classList.toggle("collapsed");
+  const col=sb.classList.contains("collapsed");
+  icon.innerHTML=col?"<path d='M9 18l6-6-6-6'/>":"<path d='M15 18l-6-6 6-6'/>";
+}
+function openMobSidebar(){
+  document.getElementById("sidebar").classList.add("mob-open");
+  document.getElementById("mob-overlay").classList.add("show");
+}
+function closeMobSidebar(){
+  document.getElementById("sidebar").classList.remove("mob-open");
+  document.getElementById("mob-overlay").classList.remove("show");
+}
+
+// ── NAVIGATION
+const PAGE_TITLES = {dashboard:"Dashboard",customers:"Customers",orders:"Orders",quotations:"Quotations",invoices:"Invoices & Receipts",reports:"Reports",'site-settings':"Site Settings",users:"Users",roles:"Roles & Permissions"};
+const PAGE_CRUMBS = {dashboard:"Overview",customers:"Client Database",orders:"Order Management",quotations:"Quoting",invoices:"Billing",reports:"Analytics","site-settings":"Content Management",users:"Access Control",roles:"Permissions"};
+
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".sb-link").forEach(l=>l.classList.remove("active"));
+  document.getElementById("page-"+id)?.classList.add("active");
+  document.getElementById("sl-"+id)?.classList.add("active");
+  document.getElementById("tb-title").textContent = PAGE_TITLES[id]||id;
+  document.getElementById("tb-crumb").textContent = PAGE_CRUMBS[id]||id;
+  closeMobSidebar();
+  // Refresh page data
+  if(id==="dashboard") renderDashboard();
+  if(id==="customers") renderCustomers();
+  if(id==="orders") renderOrders();
+  if(id==="quotations") renderQuotations();
+  if(id==="invoices") renderInvoices();
+  if(id==="users") renderUsers();
+  if(id==="roles") renderRoles();
+}
+
+// ── MODALS
+function openModal(id){
+  document.getElementById(id).classList.add("open");
+  if(id==="order-modal"||id==="quotation-modal"||id==="invoice-modal"||id==="receipt-modal") populateCustomerSelects();
+  if(id==="invoice-modal") populateOrderSelect();
+  if(id==="receipt-modal") populateInvoiceSelect();
+  if(id==="quotation-modal") initQuotationModal();
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove("open");
+  clearErrors();
+}
+function openConfirm(msg,cb){
+  document.getElementById("confirm-msg").textContent=msg;
+  document.getElementById("confirm-delete").classList.add("open");
+  deleteCallback=cb;
+}
+function closeConfirm(){document.getElementById("confirm-delete").classList.remove("open");deleteCallback=null}
+function execDelete(){if(deleteCallback)deleteCallback();closeConfirm();}
+function clearErrors(){document.querySelectorAll(".form-group.err").forEach(g=>g.classList.remove("err"))}
+
+// ── TOAST
+function toast(msg,type="success"){
+  const t=document.getElementById("toast");
+  const el=document.createElement("div");
+  const colors={success:"var(--green)",error:"var(--red)",info:"var(--teal)"};
+  el.style.cssText=`background:var(--surface);border:1px solid var(--border);border-left:3px solid ${colors[type]||colors.success};border-radius:8px;padding:12px 16px;font-size:.82rem;font-weight:500;color:var(--text);box-shadow:0 4px 16px rgba(25,34,74,.15);pointer-events:all;max-width:300px;animation:fadeUp .3s ease`;
+  el.textContent=msg;
+  t.appendChild(el);
+  setTimeout(()=>{el.style.opacity="0";el.style.transition="opacity .3s";setTimeout(()=>el.remove(),300)},3000);
+}
+// inject fadeUp keyframe
+const styleEl=document.createElement("style");
+styleEl.textContent="@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}";
+document.head.appendChild(styleEl);
+
+// ── HELPERS
+function fmtCurrency(n){return "EGP "+Number(n).toLocaleString("en-EG",{minimumFractionDigits:0,maximumFractionDigits:0})}
+function fmtDate(d){return new Date(d).toLocaleDateString("en-EG",{day:"2-digit",month:"short",year:"numeric"})}
+function getCustomer(id){return DB.customers.find(c=>c.id===id)}
+function getOrder(id){return DB.orders.find(o=>o.id===id)}
+function getInvoice(id){return DB.invoices.find(i=>i.id===id)}
+
+const STATUS_BADGE = {
+  quotation:'<span class="badge badge-amber"><span class="badge-dot" style="background:#f59e0b"></span>Quotation</span>',
+  approved:'<span class="badge badge-blue"><span class="badge-dot" style="background:#3b82f6"></span>Approved</span>',
+  in_progress:'<span class="badge badge-purple"><span class="badge-dot" style="background:#8b5cf6"></span>In Progress</span>',
+  completed:'<span class="badge badge-green"><span class="badge-dot" style="background:#22c55e"></span>Completed</span>',
+  unpaid:'<span class="badge badge-red"><span class="badge-dot" style="background:#ef4444"></span>Unpaid</span>',
+  partial:'<span class="badge badge-amber"><span class="badge-dot" style="background:#f59e0b"></span>Partial</span>',
+  paid:'<span class="badge badge-green"><span class="badge-dot" style="background:#22c55e"></span>Paid</span>',
+  active:'<span class="badge badge-green">Active</span>',
+  inactive:'<span class="badge badge-gray">Inactive</span>',
+  admin:'<span class="badge badge-navy">Admin</span>',
+  user:'<span class="badge badge-teal">User</span>',
+};
+
+const METHOD_LABELS = {cash:"Cash",bank_transfer:"Bank Transfer",check:"Check",card:"Card"};
+
+// ── DASHBOARD
+function renderDashboard(){
+  document.getElementById("dash-clients").textContent = DB.customers.length;
+  document.getElementById("dash-orders").textContent = DB.orders.length;
+  document.getElementById("dash-revenue").textContent = fmtCurrency(DB.invoices.filter(i=>i.status==="paid").reduce((s,i)=>s+i.amount,0));
+  document.getElementById("dash-invoices").textContent = DB.invoices.filter(i=>i.status!=="paid").length;
+  document.getElementById("sb-customers-count").textContent = DB.customers.length;
+  document.getElementById("sb-orders-count").textContent = DB.orders.length;
+
+  // Recent orders table
+  const tbody = document.getElementById("dash-orders-table");
+  tbody.innerHTML = DB.orders.slice(0,5).map(o=>{
+    const c=getCustomer(o.customer_id);
+    return `<tr>
+      <td class="td-mono">${o.num}</td>
+      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
+      <td>${STATUS_BADGE[o.status]||o.status}</td>
+      <td class="td-mono">${fmtCurrency(o.amount)}</td>
+      <td class="td-light">${fmtDate(o.created)}</td>
+    </tr>`;
+  }).join("");
+
+  // Pipeline stats
+  const pipeline = ["quotation","approved","in_progress","completed"];
+  const COLORS = {quotation:"var(--amber)",approved:"var(--blue)",in_progress:"var(--purple)",completed:"var(--green)"};
+  const LABELS = {quotation:"Quotation",approved:"Approved",in_progress:"In Progress",completed:"Completed"};
+  document.getElementById("pipeline-stats").innerHTML = pipeline.map(s=>{
+    const cnt = DB.orders.filter(o=>o.status===s).length;
+    const pct = Math.round((cnt/DB.orders.length)*100)||0;
+    return `<div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px">
+        <span style="font-weight:600;color:var(--text2)">${LABELS[s]}</span>
+        <span style="font-weight:700;color:${COLORS[s]}">${cnt} orders</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${COLORS[s]}"></div></div>
+    </div>`;
+  }).join("");
+}
+
+// ── CUSTOMERS
+function renderCustomers(filter=""){
+  const list = filter ? DB.customers.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase())||c.email?.toLowerCase().includes(filter.toLowerCase())||c.phone?.includes(filter)) : DB.customers;
+  const tbody=document.getElementById("customers-table");
+  tbody.innerHTML = list.length ? list.map(c=>{
+    const orderCount = DB.orders.filter(o=>o.customer_id===c.id).length;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--navy2));font-size:.72rem">${c.name[0]}</div>
+        <div><div style="font-weight:600">${c.name}</div></div>
+      </div></td>
+      <td class="td-light">${c.contact||"—"}</td>
+      <td class="td-mono">${c.phone||"—"}</td>
+      <td class="td-light">${c.email||"—"}</td>
+      <td><span class="badge badge-teal">${orderCount} orders</span></td>
+      <td class="td-light">${fmtDate(c.created)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn-icon" onclick="editCustomer(${c.id})" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="btn-icon" onclick="deleteCustomer(${c.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="empty-title">No customers found</div></div></td></tr>`;
+  document.getElementById("customers-count-label").textContent = `${list.length} of ${DB.customers.length} customers`;
+}
+function filterCustomers(v){renderCustomers(v)}
+function editCustomer(id){
+  const c=DB.customers.find(x=>x.id===id);
+  if(!c)return;
+  document.getElementById("customer-modal-title").textContent="Edit Customer";
+  document.getElementById("cm-id").value=id;
+  document.getElementById("cm-name").value=c.name;
+  document.getElementById("cm-contact").value=c.contact||"";
+  document.getElementById("cm-phone").value=c.phone||"";
+  document.getElementById("cm-email").value=c.email||"";
+  document.getElementById("cm-address").value=c.address||"";
+  openModal("customer-modal");
+}
+function saveCustomer(){
+  const name=document.getElementById("cm-name").value.trim();
+  if(!name){document.getElementById("fg-cm-name").classList.add("err");return}
+  const id=parseInt(document.getElementById("cm-id").value)||0;
+  const data={name,contact:document.getElementById("cm-contact").value,phone:document.getElementById("cm-phone").value,email:document.getElementById("cm-email").value,address:document.getElementById("cm-address").value};
+  if(id){
+    const idx=DB.customers.findIndex(c=>c.id===id);
+    DB.customers[idx]={...DB.customers[idx],...data};
+    toast("Customer updated");
+  } else {
+    DB.customers.push({id:nextIds.customer++,...data,created:new Date().toISOString().split("T")[0]});
+    toast("Customer added");
+  }
+  closeModal("customer-modal");
+  document.getElementById("cm-id").value="";
+  document.getElementById("customer-modal-title").textContent="Add Customer";
+  ["cm-name","cm-contact","cm-phone","cm-email","cm-address"].forEach(id=>document.getElementById(id).value="");
+  renderCustomers();renderDashboard();
+}
+function deleteCustomer(id){
+  openConfirm("Delete this customer and all their records? This cannot be undone.",()=>{
+    DB.customers=DB.customers.filter(c=>c.id!==id);
+    renderCustomers();renderDashboard();toast("Customer deleted","error");
+  });
+}
+
+// ── ORDERS
+const ORDER_PIPE_LABELS={quotation:"Quotation",approved:"Approved",in_progress:"In Progress",completed:"Completed"};
+const ORDER_PIPE_COLORS={quotation:"#f59e0b",approved:"#3b82f6",in_progress:"#8b5cf6",completed:"#22c55e"};
+function renderOrders(filter="",statusF=""){
+  let list = DB.orders;
+  if(filter) list=list.filter(o=>o.num.toLowerCase().includes(filter.toLowerCase())||(getCustomer(o.customer_id)?.name||"").toLowerCase().includes(filter.toLowerCase()));
+  if(statusF) list=list.filter(o=>o.status===statusF);
+
+  // Pipeline cards
+  document.getElementById("order-pipeline-cards").innerHTML = ["quotation","approved","in_progress","completed"].map(s=>{
+    const cnt=DB.orders.filter(o=>o.status===s).length;
+    const active=statusF===s;
+    return `<div class="card" style="padding:14px;cursor:pointer;border:2px solid ${active?ORDER_PIPE_COLORS[s]:"var(--border)"};transition:all .2s" onclick="setOrderFilter('${s}')">
+      <div style="font-size:1.4rem;font-weight:900;color:${ORDER_PIPE_COLORS[s]}">${cnt}</div>
+      <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${ORDER_PIPE_LABELS[s]}</div>
+    </div>`;
+  }).join("");
+
+  const tbody=document.getElementById("orders-table");
+  tbody.innerHTML = list.length ? list.map(o=>{
+    const c=getCustomer(o.customer_id);
+    const nextStatus={quotation:"approved",approved:"in_progress",in_progress:"completed"};
+    const ns=nextStatus[o.status];
+    return `<tr>
+      <td class="td-mono" style="color:var(--teal);font-weight:700">${o.num}</td>
+      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
+      <td class="td-light" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.desc||"—"}</td>
+      <td>${STATUS_BADGE[o.status]||o.status}</td>
+      <td class="td-mono">${fmtCurrency(o.amount)}</td>
+      <td class="td-light">${fmtDate(o.created)}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          ${ns?`<button class="btn btn-outline btn-sm" onclick="advanceOrder(${o.id})" style="font-size:.65rem;padding:3px 8px">&rarr; ${ORDER_PIPE_LABELS[ns]}</button>`:""}
+          <button class="btn-icon" onclick="editOrder(${o.id})" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="btn-icon" onclick="deleteOrder(${o.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No orders found</div></div></td></tr>`;
+  document.getElementById("orders-count-label").textContent=`${list.length} orders shown`;
+}
+function filterOrders(v){renderOrders(v,orderFilterStatus)}
+function filterOrderStatus(v){orderFilterStatus=v;renderOrders(document.getElementById("order-search").value,v)}
+function setOrderFilter(s){
+  orderFilterStatus=orderFilterStatus===s?"":s;
+  document.getElementById("order-status-filter").value=orderFilterStatus;
+  renderOrders("",orderFilterStatus);
+}
+function advanceOrder(id){
+  const o=DB.orders.find(x=>x.id===id);
+  const next={quotation:"approved",approved:"in_progress",in_progress:"completed"};
+  if(o&&next[o.status]){o.status=next[o.status];renderOrders("",orderFilterStatus);renderDashboard();toast("Order status updated");}
+}
+function editOrder(id){
+  const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  document.getElementById("order-modal-title").textContent="Edit Order";
+  document.getElementById("om-id").value=id;
+  populateCustomerSelects();
+  setTimeout(()=>{
+    document.getElementById("om-customer").value=o.customer_id;
+    document.getElementById("om-status").value=o.status;
+    document.getElementById("om-amount").value=o.amount;
+    document.getElementById("om-desc").value=o.desc||"";
+    document.getElementById("om-service").value=o.service||"";
+  },50);
+  openModal("order-modal");
+}
+function saveOrder(){
+  const custId=parseInt(document.getElementById("om-customer").value);
+  if(!custId){document.getElementById("fg-om-customer").classList.add("err");return}
+  const id=parseInt(document.getElementById("om-id").value)||0;
+  const data={customer_id:custId,status:document.getElementById("om-status").value,amount:parseFloat(document.getElementById("om-amount").value)||0,desc:document.getElementById("om-desc").value,service:document.getElementById("om-service").value};
+  if(id){const idx=DB.orders.findIndex(o=>o.id===id);DB.orders[idx]={...DB.orders[idx],...data};toast("Order updated");}
+  else{DB.orders.push({id:nextIds.order,num:genNum("ORD",nextIds.order++),created:new Date().toISOString().split("T")[0],...data});toast("Order created");}
+  closeModal("order-modal");
+  document.getElementById("om-id").value="";
+  document.getElementById("order-modal-title").textContent="New Order";
+  renderOrders("",orderFilterStatus);renderDashboard();
+}
+function deleteOrder(id){openConfirm("Delete this order?",()=>{DB.orders=DB.orders.filter(o=>o.id!==id);renderOrders("",orderFilterStatus);renderDashboard();toast("Deleted","error")})}
+
+// ── QUOTATIONS
+function renderQuotations(filter=""){
+  let list=DB.quotations;
+  if(filter)list=list.filter(q=>q.num.toLowerCase().includes(filter.toLowerCase())||(getCustomer(q.customer_id)?.name||"").toLowerCase().includes(filter.toLowerCase()));
+  const tbody=document.getElementById("quotations-table");
+  tbody.innerHTML=list.length?list.map(q=>{
+    const c=getCustomer(q.customer_id);
+    return `<tr>
+      <td class="td-mono" style="color:var(--teal);font-weight:700">${q.num}</td>
+      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
+      <td><span class="badge badge-teal">${q.items.length} items</span></td>
+      <td class="td-mono">${fmtCurrency(q.mat)}</td>
+      <td class="td-mono">${fmtCurrency(q.lab)}</td>
+      <td class="td-mono" style="font-weight:700;color:var(--teal)">${fmtCurrency(q.total)}</td>
+      <td class="td-light">${q.valid?fmtDate(q.valid):"—"}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn-icon" onclick="viewQuotation(${q.id})" title="View"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="btn-icon" onclick="deleteQuotation(${q.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="8"><div class="empty-state"><div class="empty-title">No quotations found</div></div></td></tr>`;
+  document.getElementById("quotations-count-label").textContent=`${list.length} quotations`;
+}
+function filterQuotations(v){renderQuotations(v)}
+function viewQuotation(id){
+  const q=DB.quotations.find(x=>x.id===id);if(!q)return;
+  const c=getCustomer(q.customer_id);
+  document.getElementById("vqm-title").textContent=`Quotation: ${q.num}`;
+  document.getElementById("vqm-body").innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div class="kv-row" style="padding:6px 0"><span class="kv-key">Client</span><span class="kv-val">${c?.name||"—"}</span></div>
+      <div class="kv-row" style="padding:6px 0"><span class="kv-key">Date</span><span class="kv-val">${fmtDate(q.created)}</span></div>
+      ${q.valid?`<div class="kv-row" style="padding:6px 0"><span class="kv-key">Valid Until</span><span class="kv-val">${fmtDate(q.valid)}</span></div>`:""}
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+      <thead style="background:var(--bg)"><tr>
+        <th style="padding:8px 10px;text-align:left;font-size:.68rem;font-weight:700;color:var(--text3)">Description</th>
+        <th style="padding:8px 10px;font-size:.68rem;font-weight:700;color:var(--text3)">Type</th>
+        <th style="padding:8px 10px;text-align:right;font-size:.68rem;font-weight:700;color:var(--text3)">Qty</th>
+        <th style="padding:8px 10px;text-align:right;font-size:.68rem;font-weight:700;color:var(--text3)">Unit</th>
+        <th style="padding:8px 10px;text-align:right;font-size:.68rem;font-weight:700;color:var(--text3)">Total</th>
+      </tr></thead>
+      <tbody>${q.items.map(i=>`
+        <tr style="border-top:1px solid var(--border)">
+          <td style="padding:9px 10px;font-size:.82rem">${i.desc}</td>
+          <td style="padding:9px 10px;text-align:center"><span class="badge ${i.type==="material"?"badge-blue":"badge-teal"}">${i.type}</span></td>
+          <td style="padding:9px 10px;text-align:right;font-size:.82rem">${i.qty}</td>
+          <td style="padding:9px 10px;text-align:right;font-size:.82rem;font-family:monospace">${fmtCurrency(i.price)}</td>
+          <td style="padding:9px 10px;text-align:right;font-size:.82rem;font-weight:700;font-family:monospace">${fmtCurrency(i.total)}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>
+    <div style="background:var(--bg);border-radius:8px;padding:14px;max-width:280px;margin-left:auto">
+      <div class="kv-row"><span class="kv-key">Materials</span><span class="kv-val td-mono">${fmtCurrency(q.mat)}</span></div>
+      <div class="kv-row"><span class="kv-key">Labor</span><span class="kv-val td-mono">${fmtCurrency(q.lab)}</span></div>
+      <div class="kv-row" style="border-bottom:none;padding-top:8px"><span style="font-weight:800">Grand Total</span><span style="font-weight:900;color:var(--teal);font-family:monospace">${fmtCurrency(q.total)}</span></div>
+    </div>
+    ${q.notes?`<p style="font-size:.78rem;color:var(--text3);margin-top:12px;font-style:italic">${q.notes}</p>`:""}
+  `;
+  openModal("view-quotation-modal");
+}
+function deleteQuotation(id){openConfirm("Delete this quotation?",()=>{DB.quotations=DB.quotations.filter(q=>q.id!==id);renderQuotations();toast("Deleted","error")})}
+
+// Quotation modal line items
+let lineItems=[];
+function initQuotationModal(){
+  populateCustomerSelects();
+  lineItems=[{desc:"",type:"material",qty:1,price:0,total:0}];
+  document.getElementById("qm-valid").value="";
+  document.getElementById("qm-notes").value="";
+  renderLineItems();
+}
+function addLineItem(){lineItems.push({desc:"",type:"material",qty:1,price:0,total:0});renderLineItems()}
+function removeLineItem(i){if(lineItems.length>1){lineItems.splice(i,1);renderLineItems()}}
+function updateLineItem(i,field,val){
+  lineItems[i][field]=field==="type"?val:field==="desc"?val:parseFloat(val)||0;
+  if(field!=="desc"&&field!=="type") lineItems[i].total=(lineItems[i].qty||0)*(lineItems[i].price||0);
+  renderLineItems();
+}
+function renderLineItems(){
+  const mat=lineItems.filter(i=>i.type==="material").reduce((s,i)=>s+i.total,0);
+  const lab=lineItems.filter(i=>i.type==="labor").reduce((s,i)=>s+i.total,0);
+  document.getElementById("q-mat-total").textContent=fmtCurrency(mat);
+  document.getElementById("q-lab-total").textContent=fmtCurrency(lab);
+  document.getElementById("q-grand-total").textContent=fmtCurrency(mat+lab);
+  document.getElementById("line-items-body").innerHTML=lineItems.map((item,i)=>`
+    <tr>
+      <td><input class="form-ctrl" value="${item.desc}" oninput="updateLineItem(${i},'desc',this.value)" placeholder="Item description..."/></td>
+      <td><select class="form-ctrl" onchange="updateLineItem(${i},'type',this.value)"><option value="material" ${item.type==="material"?"selected":""}>Material</option><option value="labor" ${item.type==="labor"?"selected":""}>Labor</option></select></td>
+      <td><input class="form-ctrl" type="number" min="0" step="1" value="${item.qty}" oninput="updateLineItem(${i},'qty',this.value)"/></td>
+      <td><input class="form-ctrl" type="number" min="0" step="0.01" value="${item.price}" oninput="updateLineItem(${i},'price',this.value)"/></td>
+      <td style="text-align:right;padding:6px 10px;font-weight:700;font-size:.82rem;color:var(--teal)">${fmtCurrency(item.total)}</td>
+      <td><button class="btn-icon" onclick="removeLineItem(${i})" ${lineItems.length===1?"disabled":""} style="color:var(--red);border-color:transparent"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></td>
+    </tr>`).join("");
+}
+function saveQuotation(){
+  const custId=parseInt(document.getElementById("qm-customer").value);
+  if(!custId){document.getElementById("fg-qm-customer").classList.add("err");return}
+  const mat=lineItems.filter(i=>i.type==="material").reduce((s,i)=>s+i.total,0);
+  const lab=lineItems.filter(i=>i.type==="labor").reduce((s,i)=>s+i.total,0);
+  DB.quotations.push({id:nextIds.quotation,num:genNum("Q",nextIds.quotation++),customer_id:custId,items:[...lineItems],mat,lab,total:mat+lab,valid:document.getElementById("qm-valid").value||null,notes:document.getElementById("qm-notes").value,created:new Date().toISOString().split("T")[0]});
+  closeModal("quotation-modal");renderQuotations();toast("Quotation created");
+}
+
+// ── INVOICES
+function renderInvoices(statusF=""){
+  let invList=DB.invoices;
+  if(statusF)invList=invList.filter(i=>i.status===statusF);
+  document.getElementById("inv-unpaid").textContent=DB.invoices.filter(i=>i.status==="unpaid").length;
+  document.getElementById("inv-partial").textContent=DB.invoices.filter(i=>i.status==="partial").length;
+  document.getElementById("inv-paid").textContent=DB.invoices.filter(i=>i.status==="paid").length;
+  const tbody=document.getElementById("invoices-table");
+  tbody.innerHTML=invList.length?invList.map(inv=>{
+    const c=getCustomer(inv.customer_id);
+    const balance=inv.amount-inv.paid;
+    return `<tr>
+      <td class="td-mono" style="color:var(--teal);font-weight:700">${inv.num}</td>
+      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
+      <td class="td-mono">${fmtCurrency(inv.amount)}</td>
+      <td class="td-mono" style="color:var(--green)">${fmtCurrency(inv.paid)}</td>
+      <td class="td-mono" style="color:${balance>0?"var(--red)":"var(--green)"}">${fmtCurrency(balance)}</td>
+      <td>${STATUS_BADGE[inv.status]||inv.status}</td>
+      <td class="td-light">${inv.due?fmtDate(inv.due):"—"}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          ${inv.status!=="paid"?`<button class="btn btn-outline btn-sm" onclick="recordPayment(${inv.id})" style="font-size:.65rem;color:var(--green);border-color:rgba(34,197,94,.3)">+ Payment</button>`:""}
+          <button class="btn-icon" onclick="deleteInvoice(${inv.id})" title="Delete" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="8"><div class="empty-state"><div class="empty-title">No invoices</div></div></td></tr>`;
+
+  // Receipts
+  const rtbody=document.getElementById("receipts-table");
+  rtbody.innerHTML=DB.receipts.map(r=>{
+    const inv=getInvoice(r.invoice_id);
+    const c=inv?getCustomer(inv.customer_id):null;
+    return `<tr>
+      <td class="td-mono" style="color:var(--teal);font-weight:700">${r.num}</td>
+      <td class="td-mono">${inv?.num||"—"}</td>
+      <td><div style="font-weight:600">${c?.name||"—"}</div></td>
+      <td class="td-mono" style="color:var(--green);font-weight:700">${fmtCurrency(r.amount)}</td>
+      <td><span class="badge badge-navy">${METHOD_LABELS[r.method]||r.method}</span></td>
+      <td class="td-light">${fmtDate(r.date)}</td>
+      <td class="td-light">${r.ref||"—"}</td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No receipts</div></div></td></tr>`;
+}
+function filterInvoiceStatus(v){renderInvoices(v)}
+function switchInvTab(tab){
+  currentInvTab=tab;
+  document.getElementById("inv-panel-invoices").style.display=tab==="invoices"?"block":"none";
+  document.getElementById("inv-panel-receipts").style.display=tab==="receipts"?"block":"none";
+  document.getElementById("inv-tab-inv").className=tab==="invoices"?"btn btn-primary btn-sm":"btn btn-ghost btn-sm";
+  document.getElementById("inv-tab-rec").className=tab==="receipts"?"btn btn-primary btn-sm":"btn btn-ghost btn-sm";
+}
+function recordPayment(invId){
+  populateInvoiceSelect();
+  setTimeout(()=>{document.getElementById("rm-invoice").value=invId;},50);
+  document.getElementById("rm-date").value=new Date().toISOString().split("T")[0];
+  openModal("receipt-modal");
+}
+function populateCustomerSelects(){
+  const opts=DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+  ["om-customer","qm-customer","im-customer"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.innerHTML=`<option value="">Select customer...</option>${opts}`;
+  });
+}
+function populateOrderSelect(){
+  const el=document.getElementById("im-order");
+  if(el)el.innerHTML=`<option value="">None</option>${DB.orders.map(o=>`<option value="${o.id}">${o.num} — ${getCustomer(o.customer_id)?.name||"?"}</option>`).join("")}`;
+}
+function populateInvoiceSelect(){
+  const el=document.getElementById("rm-invoice");
+  if(el)el.innerHTML=`<option value="">Select invoice...</option>${DB.invoices.filter(i=>i.status!=="paid").map(i=>`<option value="${i.id}">${i.num} — ${getCustomer(i.customer_id)?.name||"?"} (${fmtCurrency(i.amount-i.paid)} due)</option>`).join("")}`;
+}
+function saveInvoice(){
+  const custId=parseInt(document.getElementById("im-customer").value);
+  const amt=parseFloat(document.getElementById("im-amount").value);
+  if(!custId){document.getElementById("fg-im-customer").classList.add("err");return}
+  if(!amt){document.getElementById("fg-im-amount").classList.add("err");return}
+  DB.invoices.push({id:nextIds.invoice,num:genNum("INV",nextIds.invoice++),customer_id:custId,order_id:parseInt(document.getElementById("im-order").value)||null,amount:amt,paid:0,status:"unpaid",due:document.getElementById("im-due").value||null,created:new Date().toISOString().split("T")[0]});
+  closeModal("invoice-modal");renderInvoices();renderDashboard();toast("Invoice created");
+}
+function saveReceipt(){
+  const invId=parseInt(document.getElementById("rm-invoice").value);
+  const amt=parseFloat(document.getElementById("rm-amount").value);
+  if(!invId){document.getElementById("fg-rm-invoice").classList.add("err");return}
+  if(!amt){document.getElementById("fg-rm-amount").classList.add("err");return}
+  DB.receipts.push({id:nextIds.receipt,num:genNum("REC",nextIds.receipt++),invoice_id:invId,amount:amt,method:document.getElementById("rm-method").value,date:document.getElementById("rm-date").value,ref:document.getElementById("rm-ref").value,notes:document.getElementById("rm-notes").value,created:new Date().toISOString().split("T")[0]});
+  // Update invoice
+  const inv=DB.invoices.find(i=>i.id===invId);
+  if(inv){inv.paid+=amt;inv.status=inv.paid>=inv.amount?"paid":inv.paid>0?"partial":"unpaid";}
+  closeModal("receipt-modal");renderInvoices();renderDashboard();toast("Payment recorded");
+}
+function deleteInvoice(id){openConfirm("Delete this invoice?",()=>{DB.invoices=DB.invoices.filter(i=>i.id!==id);renderInvoices();renderDashboard();toast("Deleted","error")})}
+
+// ── USERS
+function renderUsers(){
+  document.getElementById("users-table").innerHTML=DB.users.map(u=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--teal))">${u.name[0]}</div>
+        <div><div style="font-weight:600">${u.name}</div></div>
+      </div></td>
+      <td class="td-light">${u.email}</td>
+      <td>${STATUS_BADGE[u.role]||u.role}</td>
+      <td class="td-light">${u.lastActive}</td>
+      <td>${STATUS_BADGE[u.status]||u.status}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn-icon" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          ${u.id>1?`<button class="btn-icon" title="Delete" onclick="deleteUser(${u.id})" style="color:var(--red);border-color:rgba(239,68,68,.2)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`:""}
+        </div>
+      </td>
+    </tr>`).join("");
+}
+function saveUser(){
+  const name=document.getElementById("um-name").value.trim();
+  const email=document.getElementById("um-email").value.trim();
+  if(!name||!email)return;
+  DB.users.push({id:nextIds.user++,name,email,role:document.getElementById("um-role").value,status:"active",lastActive:"Just now"});
+  closeModal("user-modal");renderUsers();toast("User created");
+}
+function deleteUser(id){openConfirm("Delete this user?",()=>{DB.users=DB.users.filter(u=>u.id!==id);renderUsers();toast("User deleted","error")})}
+
+// ── ROLES
+const ALL_TABS=["dashboard","customers","orders","quotations","invoices","reports","site-settings","users","roles"];
+const TAB_LABELS={dashboard:"Dashboard",customers:"Customers",orders:"Orders",quotations:"Quotations",invoices:"Invoices & Receipts",reports:"Reports","site-settings":"Site Settings",users:"Users",roles:"Roles & Permissions"};
+const ROLE_COLORS={navy:"background:var(--navy);color:#fff",teal:"background:var(--teal);color:#fff",purple:"background:rgba(139,92,246,.15);color:var(--purple)",blue:"background:rgba(59,130,246,.1);color:#2563eb"};
+
+function renderRoles(){
+  document.getElementById("roles-list").innerHTML=DB.roles.map(r=>`
+    <div onclick="selectRole(${r.id})" style="padding:10px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:4px;transition:all .15s;${selectedRoleId===r.id?"background:var(--teal-bg);border:1px solid var(--border2)":"border:1px solid transparent"}">
+      <div style="width:8px;height:8px;border-radius:50%;${ROLE_COLORS[r.color]||"background:var(--teal)"}"></div>
+      <div style="flex:1">
+        <div style="font-size:.85rem;font-weight:700;color:var(--text)">${r.name}</div>
+        <div style="font-size:.7rem;color:var(--text3)">${r.desc}</div>
+      </div>
+      <button onclick="event.stopPropagation();deleteRole(${r.id})" style="opacity:.4;transition:opacity .2s;color:var(--red)" class="btn-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>`).join("");
+  renderPermissions();
+}
+function selectRole(id){selectedRoleId=id;renderRoles()}
+function renderPermissions(){
+  const role=DB.roles.find(r=>r.id===selectedRoleId);
+  if(!role){document.getElementById("perm-table-body").innerHTML="";return}
+  document.getElementById("perm-role-name").textContent=`Editing: ${role.name}`;
+  const perms=DB.permissions[selectedRoleId]||{};
+  document.getElementById("perm-table-body").innerHTML=ALL_TABS.map(tab=>`
+    <tr>
+      <td>${TAB_LABELS[tab]}</td>
+      <td>
+        <div class="perm-check ${perms[tab]?"on":""}" onclick="togglePerm('${tab}')">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+function togglePerm(tab){
+  if(!DB.permissions[selectedRoleId])DB.permissions[selectedRoleId]={};
+  DB.permissions[selectedRoleId][tab]=!DB.permissions[selectedRoleId][tab];
+  renderPermissions();
+}
+function savePermissions(){toast("Permissions saved")}
+function saveRole(){
+  const name=document.getElementById("rm2-name").value.trim();
+  if(!name)return;
+  DB.roles.push({id:Date.now(),name,desc:document.getElementById("rm2-desc").value,color:"teal"});
+  closeModal("role-modal");renderRoles();toast("Role created");
+}
+function deleteRole(id){
+  if(id===1){toast("Cannot delete Administrator role","error");return}
+  openConfirm("Delete this role?",()=>{DB.roles=DB.roles.filter(r=>r.id!==id);if(selectedRoleId===id)selectedRoleId=DB.roles[0]?.id;renderRoles();toast("Role deleted","error")});
+}
+
+// ── SETTINGS
+function switchSettingsTab(tab,el){
+  ["hero","stats","company","seo"].forEach(t=>{
+    document.getElementById("settings-tab-"+t).style.display=t===tab?"block":"none";
+  });
+  document.querySelectorAll(".settings-nav-item").forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
+}
+function saveSettings(){toast("Settings saved successfully")}
+
+// ── INIT
+functi
