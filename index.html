@@ -1169,11 +1169,17 @@ function applySiteSettings() {
   // Brand icon / favicon
   const iconData = localStorage.getItem('vyra_site_icon');
   if (iconData) {
+    // Set favicon
     const fav = document.getElementById('site-favicon');
     if (fav) fav.href = iconData;
-    // Also update nav logo if present
-    const logos = document.querySelectorAll('.nav-logo-img,.site-logo-img');
-    logos.forEach(el => { el.src = iconData; el.style.display = 'block'; });
+    // Replace nav-mark SVG with the uploaded icon image (appears in both desktop + mobile nav)
+    document.querySelectorAll('.nav-mark').forEach(el => {
+      el.innerHTML = '<img src="' + iconData + '" style="width:100%;height:100%;object-fit:cover;border-radius:5px"/>';
+    });
+    // Replace any existing .nav-logo-img elements too
+    document.querySelectorAll('.nav-logo-img,.site-logo-img').forEach(el => {
+      el.src = iconData; el.style.display = 'block';
+    });
   }
 
   // SEO
@@ -1191,7 +1197,4 @@ function applySiteSettings() {
 document.addEventListener('DOMContentLoaded', function() {
   reveal();
   applySiteSettings();
-});
-</script>
-</body>
-</html>
+});.
