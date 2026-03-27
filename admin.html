@@ -2081,7 +2081,7 @@ async function loadAllData(){
         const seeded=localStorage.getItem('vyra_seeded_'+t);
         if(stored!==null){DB[t]=JSON.parse(stored);}
         else if(!seeded){DB[t]=SEED[t]||[];localStorage.setItem('vyra_'+t,JSON.stringify(DB[t]));localStorage.setItem('vyra_seeded_'+t,'1');}
-        else{DB[t]=[];}
+        else{DB[t]=[];}  // Intentionally empty
       }catch(e){DB[t]=SEED[t]||[];}
     });
     nextIds.customer =DB.customers.length ?Math.max(...DB.customers.map(r=>r.id))+1:1;
@@ -2096,7 +2096,12 @@ async function loadAllData(){
   showLoadingOverlay(false);
 }
 function saveToBrowser(table){
-  try{localStorage.setItem('vyra_'+table,JSON.stringify(DB[table]));localStorage.setItem('vyra_seeded_'+table,'1');}catch(e){}
+  try{
+    localStorage.setItem('vyra_'+table, JSON.stringify(DB[table]));
+    // Mark as seeded so we know this table has been initialised
+    // (prevents re-seeding on first load, allows empty state after user deletes all)
+    localStorage.setItem('vyra_seeded_'+table, DB[table].length > 0 ? '1' : 'empty');
+  }catch(e){}
 }
 async function seedTable(table){
   if(!ONLINE)return;
@@ -2461,7 +2466,7 @@ async function saveQuotation(){
   newRow.items=lineItems.map(i=>({...i}));
   DB.quotations.push(newRow);saveToBrowser('quotations');
   auditLog('CREATE','Quotation',`Created: ${num} for ${getCustomer(custId)?.name||'?'}`);
-  closeModal('quotation-modal');renderQuotations();toast('Quotation created');
+  closeModal('quotation-modal');renderQuotations();renderDashboard();renderReports();toast('Quotation created');
 }
 function viewQuotation(id){
   const q=DB.quotations.find(x=>x.id===id);if(!q)return;
@@ -2475,7 +2480,7 @@ async function deleteQuotation(id){
   openConfirm('Delete this quotation?',async()=>{
     const q=DB.quotations.find(x=>x.id===id);
     await sbDelete('quotations',id);DB.quotations=DB.quotations.filter(q=>q.id!==id);saveToBrowser('quotations');
-    auditLog('DELETE','Quotation',`Deleted: ${q?.num}`);renderQuotations();toast('Deleted','error');
+    auditLog('DELETE','Quotation',`Deleted: ${q?.num}`);renderQuotations();renderDashboard();renderReports();toast('Deleted','error');
   });
 }
 
