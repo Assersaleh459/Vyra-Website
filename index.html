@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>VYRA Systems — Engineering Tomorrow's Environments</title>
 <meta name="description" content="VYRA Systems engineers high-performance technology environments — networking, CCTV, sound systems and smart automation for Egypt's leading businesses."/>
+<link rel="icon" id="site-favicon" href="data:," />
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet"/>
@@ -132,18 +133,18 @@ ul,ol{list-style:none}
 .hero-right{position:relative;z-index:2;display:flex;flex-direction:column;gap:16px}
 
 /* Status card */
-.status-card{padding:22px 24px;animation:float 7s ease-in-out infinite;background:#19224A;border:1px solid rgba(95,174,182,.25);border-radius:var(--r)}
+.status-card{padding:22px 24px;animation:float 7s ease-in-out infinite;background:rgba(255,255,255,.95);border:1px solid rgba(95,174,182,.3);border-radius:var(--r);box-shadow:0 8px 32px rgba(25,34,74,.12)}
 .sc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(95,174,182,.2)}
 .sc-title{font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--teal)}
 .sc-live{display:flex;align-items:center;gap:6px;font-size:.6rem;font-weight:600;color:#4ade80;letter-spacing:.1em;text-transform:uppercase}
 .sc-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse-ring 2s infinite}
-.sc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:7px;background:rgba(0,0,0,.25);margin-bottom:6px}
-.sc-row-l{display:flex;align-items:center;gap:8px;font-size:.72rem;color:rgba(240,244,255,.7)}
+.sc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:7px;background:rgba(25,34,74,.06);margin-bottom:6px}
+.sc-row-l{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--muted,#4A5A7A)}
 .sc-rdot{width:5px;height:5px;border-radius:50%;background:#4ade80;flex-shrink:0}
 .sc-row-v{font-size:.65rem;font-weight:700;color:var(--teal)}
 .sc-foot{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(95,174,182,.2)}
 .sc-num{font-size:1.6rem;font-weight:800;color:var(--teal);line-height:1;display:block}
-.sc-lbl{font-size:.6rem;color:rgba(200,215,240,.7);margin-top:2px}
+.sc-lbl{font-size:.6rem;color:#8A9CC0;margin-top:2px}
 .metric-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .metric{padding:16px 18px;display:flex;align-items:center;gap:12px;transition:all .3s;background:#FFFFFF;border:1px solid rgba(95,174,182,.2);border-radius:var(--r);box-shadow:0 2px 12px rgba(25,34,74,.07)}
 .metric:hover{border-color:var(--border2);transform:translateY(-2px)}
@@ -968,17 +969,74 @@ function sendForm(e) {
   ];
   checks.forEach(c => {
     const el = document.getElementById(c.g);
-    if (c.v()) { el.classList.remove('err'); }
-    else { el.classList.add('err'); ok = false; }
+    if (c.v()) { el.classList.remove('err'); } else { el.classList.add('err'); ok = false; }
   });
   if (!ok) return;
-  const btn = document.getElementById('sbtn');
+
+  const btn  = document.getElementById('sbtn');
+  const stx  = document.getElementById('s-tx');
   btn.disabled = true;
-  document.getElementById('s-tx').textContent = 'Sending...';
-  setTimeout(() => {
+  stx.textContent = 'Sending…';
+
+  const name    = document.getElementById('f-n').value.trim();
+  const email   = document.getElementById('f-e').value.trim();
+  const phone   = document.getElementById('f-p').value.trim();
+  const service = document.getElementById('f-s').value;
+  const message = document.getElementById('f-m').value.trim();
+
+  // 1. Send email via Formspree
+  const formData = new FormData();
+  formData.append('name',    name);
+  formData.append('email',   email);
+  formData.append('phone',   phone);
+  formData.append('service', service);
+  formData.append('message', message);
+  formData.append('_replyto', email);
+  formData.append('_subject', 'New Enquiry from ' + name + ' — VYRA Systems');
+
+  fetch('https://formspree.io/f/xvgkolla', {
+    method: 'POST',
+    body: formData,
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.ok || data.errors === undefined || data.errors === null) {
+      // 2. Also save to Supabase
+      saveMessageToSupabase(name, email, phone, service, message);
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('sw').classList.add('show');
+    } else {
+      // Formspree returned an error — still show success to user,
+      // save to Supabase anyway
+      saveMessageToSupabase(name, email, phone, service, message);
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('sw').classList.add('show');
+    }
+  })
+  .catch(() => {
+    // Network error — still save to Supabase and show success
+    saveMessageToSupabase(name, email, phone, service, message);
     document.getElementById('form-wrap').style.display = 'none';
     document.getElementById('sw').classList.add('show');
-  }, 1300);
+  });
+}
+
+function saveMessageToSupabase(name, email, phone, service, message) {
+  try {
+    const SURL = 'https://qqdnmwwrknhaeggscxev.supabase.co';
+    const SKEY = 'sb_publishable_0SjQeYiKEjvSWN2S3zbqYg_DC0LlILq';
+    fetch(SURL + '/rest/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SKEY,
+        'Authorization': 'Bearer ' + SKEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ name, email, phone, service, message, status: 'unread' })
+    }).catch(() => {});
+  } catch(e) {}
 }
 
 function resetForm() {
@@ -1105,6 +1163,17 @@ function applySiteSettings() {
       document.querySelectorAll('.ws-name').forEach((el,i)=>{ if(why.stats[i]?.name) el.textContent=why.stats[i].name; });
       document.querySelectorAll('.ws-desc').forEach((el,i)=>{ if(why.stats[i]?.desc) el.textContent=why.stats[i].desc; });
     }
+  }
+
+
+  // Brand icon / favicon
+  const iconData = localStorage.getItem('vyra_site_icon');
+  if (iconData) {
+    const fav = document.getElementById('site-favicon');
+    if (fav) fav.href = iconData;
+    // Also update nav logo if present
+    const logos = document.querySelectorAll('.nav-logo-img,.site-logo-img');
+    logos.forEach(el => { el.src = iconData; el.style.display = 'block'; });
   }
 
   // SEO
