@@ -1460,35 +1460,64 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
 
     <!-- ══ ROLES ══ -->
     <div class="page" id="page-roles">
-      <div class="pg-title">Roles & Permissions</div>
-      <div class="pg-sub">Control which tabs each role can access</div>
-      <div class="grid-2">
+      <div class="pg-title">Roles &amp; Permissions</div>
+      <div class="pg-sub">Control what each role can access, edit and delete in the portal</div>
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start">
         <!-- Roles list -->
-        <div class="card">
-          <div class="card-header" style="justify-content:space-between">
-            <div class="card-title">Available Roles</div>
-            <button class="btn btn-primary btn-sm" onclick="openModal('role-modal')">+ Add Role</button>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card">
+            <div class="card-header" style="justify-content:space-between">
+              <div class="card-title">Roles</div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('role-modal')">+ Add</button>
+            </div>
+            <div class="card-body" style="padding:8px">
+              <div id="roles-list"></div>
+            </div>
           </div>
-          <div class="card-body" style="padding:8px">
-            <div id="roles-list"></div>
+          <!-- Legend -->
+          <div class="card" style="padding:14px">
+            <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Permission Types</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:22px;height:22px;border-radius:5px;background:rgba(95,174,182,.15);border:1.5px solid var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div><div style="font-size:.75rem;font-weight:600;color:var(--text)">Access</div><div style="font-size:.67rem;color:var(--text3)">Can view the page</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:22px;height:22px;border-radius:5px;background:rgba(245,158,11,.12);border:1.5px solid var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div><div style="font-size:.75rem;font-weight:600;color:var(--text)">Edit</div><div style="font-size:.67rem;color:var(--text3)">Can create &amp; update</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:22px;height:22px;border-radius:5px;background:rgba(239,68,68,.1);border:1.5px solid var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div><div style="font-size:.75rem;font-weight:600;color:var(--text)">Delete</div><div style="font-size:.67rem;color:var(--text3)">Can permanently remove</div></div>
+              </div>
+            </div>
           </div>
         </div>
         <!-- Permissions matrix -->
         <div class="card">
           <div class="card-header" style="justify-content:space-between">
-            <div><div class="card-title">Tab Permissions</div><div class="card-sub" id="perm-role-name">Select a role to edit</div></div>
-            <button class="btn btn-primary btn-sm" onclick="savePermissions()">Save</button>
+            <div>
+              <div class="card-title">Permissions Matrix</div>
+              <div class="card-sub" id="perm-role-name">Select a role to edit</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="savePermissions()">Save Permissions</button>
           </div>
-          <div class="card-body" style="padding:12px">
-            <table class="perm-table" id="perm-table">
-              <thead><tr><th>Tab / Module</th><th>Access</th></tr></thead>
+          <div class="card-body" style="padding:0">
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr style="background:var(--bg)">
+                  <th style="padding:10px 16px;text-align:left;font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)">Page / Module</th>
+                  <th style="padding:10px 12px;text-align:center;font-size:.7rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);width:80px">Access</th>
+                  <th style="padding:10px 12px;text-align:center;font-size:.7rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);width:80px">Edit</th>
+                  <th style="padding:10px 12px;text-align:center;font-size:.7rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);width:80px">Delete</th>
+                </tr>
+              </thead>
               <tbody id="perm-table-body"></tbody>
             </table>
           </div>
         </div>
       </div>
     </div>
-
   </div><!-- /content -->
 </div><!-- /main -->
 </div><!-- /admin-app -->
@@ -1883,11 +1912,73 @@ const ROLES = [
   {id:4,name:'Technician',desc:'Orders & settings',color:'blue'},
 ];
 const PERMISSIONS = {
-  1:{dashboard:true,customers:true,orders:true,quotations:true,invoices:true,reports:true,'site-settings':true,inbox:true,audit:true,users:true,roles:true},
-  2:{dashboard:true,customers:true,orders:true,quotations:true,invoices:false,reports:true,'site-settings':false,inbox:true,audit:false,users:false,roles:false},
-  3:{dashboard:true,customers:false,orders:false,quotations:false,invoices:true,reports:true,'site-settings':false,inbox:true,audit:false,users:false,roles:false},
-  4:{dashboard:true,customers:false,orders:true,quotations:false,invoices:false,reports:false,'site-settings':true,inbox:false,audit:false,users:false,roles:false},
+  1:{
+    dashboard:{access:true,edit:true,delete:true},
+    customers:{access:true,edit:true,delete:true},
+    orders:{access:true,edit:true,delete:true},
+    quotations:{access:true,edit:true,delete:true},
+    invoices:{access:true,edit:true,delete:true},
+    reports:{access:true,edit:false,delete:false},
+    'site-settings':{access:true,edit:true,delete:false},
+    inbox:{access:true,edit:true,delete:true},
+    audit:{access:true,edit:false,delete:true},
+    users:{access:true,edit:true,delete:true},
+    roles:{access:true,edit:true,delete:true},
+  },
+  2:{
+    dashboard:{access:true,edit:false,delete:false},
+    customers:{access:true,edit:true,delete:false},
+    orders:{access:true,edit:true,delete:false},
+    quotations:{access:true,edit:true,delete:false},
+    invoices:{access:true,edit:false,delete:false},
+    reports:{access:true,edit:false,delete:false},
+    'site-settings':{access:false,edit:false,delete:false},
+    inbox:{access:true,edit:true,delete:false},
+    audit:{access:false,edit:false,delete:false},
+    users:{access:false,edit:false,delete:false},
+    roles:{access:false,edit:false,delete:false},
+  },
+  3:{
+    dashboard:{access:true,edit:false,delete:false},
+    customers:{access:true,edit:false,delete:false},
+    orders:{access:false,edit:false,delete:false},
+    quotations:{access:false,edit:false,delete:false},
+    invoices:{access:true,edit:true,delete:false},
+    reports:{access:true,edit:false,delete:false},
+    'site-settings':{access:false,edit:false,delete:false},
+    inbox:{access:true,edit:false,delete:false},
+    audit:{access:false,edit:false,delete:false},
+    users:{access:false,edit:false,delete:false},
+    roles:{access:false,edit:false,delete:false},
+  },
+  4:{
+    dashboard:{access:true,edit:false,delete:false},
+    customers:{access:false,edit:false,delete:false},
+    orders:{access:true,edit:true,delete:false},
+    quotations:{access:false,edit:false,delete:false},
+    invoices:{access:false,edit:false,delete:false},
+    reports:{access:false,edit:false,delete:false},
+    'site-settings':{access:true,edit:true,delete:false},
+    inbox:{access:false,edit:false,delete:false},
+    audit:{access:false,edit:false,delete:false},
+    users:{access:false,edit:false,delete:false},
+    roles:{access:false,edit:false,delete:false},
+  },
 };
+// Helper: check if current logged-in user has a specific permission
+// For now admin role (id 1) always has full access
+let CURRENT_ROLE_ID = 1;
+function canAccess(page){ const p=DB_PERMISSIONS[CURRENT_ROLE_ID]||{};return p[page]?.access!==false; }
+function canEdit(page){   const p=DB_PERMISSIONS[CURRENT_ROLE_ID]||{};return p[page]?.edit===true; }
+function canDelete(page){ const p=DB_PERMISSIONS[CURRENT_ROLE_ID]||{};return p[page]?.delete===true; }
+function applyNavPermissions(){
+  // Show/hide sidebar links based on access permission
+  const pages=['dashboard','customers','orders','quotations','invoices','reports','site-settings','inbox','audit','users','roles'];
+  pages.forEach(page=>{
+    const link=document.getElementById('sl-'+page);
+    if(link) link.style.display=canAccess(page)?'':'none';
+  });
+}
 let DB_ROLES = [...ROLES];
 let DB_PERMISSIONS = JSON.parse(JSON.stringify(PERMISSIONS));
 let nextIds = {customer:1,order:1,quotation:1,invoice:1,receipt:1,user:1,message:1};
@@ -2657,13 +2748,77 @@ function renderRoles(){
 }
 function selectRole(id){selectedRoleId=id;renderRoles();}
 function renderPermissions(){
-  const role=DB_ROLES.find(r=>r.id===selectedRoleId);if(!role){document.getElementById('perm-table-body').innerHTML='';return;}
+  const role=DB_ROLES.find(r=>r.id===selectedRoleId);
+  if(!role){document.getElementById('perm-table-body').innerHTML='';return;}
   document.getElementById('perm-role-name').textContent='Editing: '+role.name;
-  const perms=DB_PERMISSIONS[selectedRoleId]||{};
-  document.getElementById('perm-table-body').innerHTML=ALL_TABS.map(tab=>`<tr><td>${TAB_LABELS[tab]}</td><td><div class="perm-check ${perms[tab]?'on':''}" onclick="togglePerm('${tab}')"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div></td></tr>`).join('');
+  if(!DB_PERMISSIONS[selectedRoleId]){
+    // Init with all false for new roles
+    DB_PERMISSIONS[selectedRoleId]={};
+    ALL_TABS.forEach(t=>{DB_PERMISSIONS[selectedRoleId][t]={access:false,edit:false,delete:false};});
+  }
+  const perms=DB_PERMISSIONS[selectedRoleId];
+  const isAdmin=selectedRoleId===1;
+  document.getElementById('perm-table-body').innerHTML=ALL_TABS.map(tab=>{
+    const p=perms[tab]||{access:false,edit:false,delete:false};
+    const PAGE_ICONS={
+      dashboard:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+      customers:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+      orders:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/></svg>',
+      quotations:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>',
+      invoices:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>',
+      reports:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+      'site-settings':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
+      inbox:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+      audit:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+      users:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      roles:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    };
+    const NO_EDIT_PAGES=['dashboard','reports','audit'];
+    const NO_DELETE_PAGES=['dashboard','reports','site-settings','audit'];
+    const hasEdit   = !NO_EDIT_PAGES.includes(tab);
+    const hasDelete = !NO_DELETE_PAGES.includes(tab);
+    const mk=(type,val,color)=>`<td style="text-align:center;border-bottom:1px solid var(--border)">
+      <div onclick="togglePerm('${tab}','${type}')" style="width:24px;height:24px;border-radius:6px;margin:auto;cursor:pointer;border:1.5px solid ${val?color:'var(--border2)'};background:${val?color.replace(')',', .12)').replace('rgb(','rgba(').replace('#','rgba(').replace(')',', .1)'):'transparent'};display:flex;align-items:center;justify-content:center;transition:all .15s;${isAdmin&&tab==='dashboard'?'opacity:.5;cursor:default;pointer-events:none':''}">
+        ${val?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+      </div>
+    </td>`;
+    return`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text);font-size:.82rem;font-weight:600">
+          <span style="color:var(--text3)">${PAGE_ICONS[tab]||''}</span>
+          ${TAB_LABELS[tab]}
+        </div>
+      </td>
+      ${mk('access', p.access||false, 'var(--teal)')}
+      <td style="text-align:center;border-bottom:1px solid var(--border)">${hasEdit?`<div onclick="togglePerm('${tab}','edit')" style="width:24px;height:24px;border-radius:6px;margin:auto;cursor:pointer;border:1.5px solid ${p.edit?'#f59e0b':'var(--border2)'};background:${p.edit?'rgba(245,158,11,.1)':'transparent'};display:flex;align-items:center;justify-content:center;transition:all .15s">${p.edit?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>`:'<span style="color:var(--border);font-size:.7rem">—</span>'}</td>
+      <td style="text-align:center;border-bottom:1px solid var(--border)">${hasDelete?`<div onclick="togglePerm('${tab}','delete')" style="width:24px;height:24px;border-radius:6px;margin:auto;cursor:pointer;border:1.5px solid ${p.delete?'var(--red)':'var(--border2)'};background:${p.delete?'rgba(239,68,68,.1)':'transparent'};display:flex;align-items:center;justify-content:center;transition:all .15s">${p.delete?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>`:'<span style="color:var(--border);font-size:.7rem">—</span>'}</td>
+    </tr>`;
+  }).join('');
 }
-function togglePerm(tab){if(!DB_PERMISSIONS[selectedRoleId])DB_PERMISSIONS[selectedRoleId]={};DB_PERMISSIONS[selectedRoleId][tab]=!DB_PERMISSIONS[selectedRoleId][tab];renderPermissions();}
-function savePermissions(){auditLog('UPDATE','Role','Permissions updated for: '+DB_ROLES.find(r=>r.id===selectedRoleId)?.name);toast('Permissions saved');}
+function togglePerm(tab, type){
+  if(!DB_PERMISSIONS[selectedRoleId]) DB_PERMISSIONS[selectedRoleId]={};
+  if(!DB_PERMISSIONS[selectedRoleId][tab]) DB_PERMISSIONS[selectedRoleId][tab]={access:false,edit:false,delete:false};
+  const p = DB_PERMISSIONS[selectedRoleId][tab];
+  if(type==='access'){
+    p.access = !p.access;
+    // Turning off access also turns off edit and delete
+    if(!p.access){ p.edit=false; p.delete=false; }
+  } else if(type==='edit'){
+    p.edit = !p.edit;
+    // Turning on edit requires access
+    if(p.edit) p.access=true;
+  } else if(type==='delete'){
+    p.delete = !p.delete;
+    // Turning on delete requires access
+    if(p.delete) p.access=true;
+  }
+  renderPermissions();
+}
+function savePermissions(){
+  auditLog('UPDATE','Role','Permissions updated for: '+DB_ROLES.find(r=>r.id===selectedRoleId)?.name);
+  applyNavPermissions();
+  toast('Permissions saved — sidebar updated');
+}
 function saveRole(){
   const name=document.getElementById('rm2-name').value.trim();if(!name)return;
   const newRole={id:Date.now(),name,desc:document.getElementById('rm2-desc').value,color:'teal'};
@@ -2797,6 +2952,7 @@ function saveSettings(section){
 async function initApp(){
   await loadAllData();
   renderDashboard();renderCustomers();renderOrders();renderQuotations();renderInvoices();renderReports();renderInbox();renderUsers();renderRoles();loadSettingsIntoForms();
+  applyNavPermissions();
   auditLog('LOGIN','System','Portal initialised');
 }
 
