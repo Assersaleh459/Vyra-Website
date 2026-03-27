@@ -716,7 +716,7 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="notif-dot"></span>
       </button>
-      <a class="btn btn-outline btn-sm" href="/" target="_blank">
+      <a class="btn btn-outline btn-sm" href="index.html" target="_blank">
         <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         View Site
       </a>
@@ -2169,12 +2169,12 @@ function showPage(id){
   document.getElementById('tb-title').textContent=PAGE_TITLES[id]||id;
   document.getElementById('tb-crumb').textContent=PAGE_CRUMBS[id]||id;
   closeMobSidebar();
-  if(id==='dashboard')   renderDashboard();
+  if(id==='dashboard')   renderDashboard();renderReports();
   if(id==='customers')   renderCustomers();
   if(id==='orders')      renderOrders();
   if(id==='quotations')  renderQuotations();
   if(id==='invoices')    renderInvoices();
-  if(id==='reports')     renderReports();
+  if(id==='reports')     { renderDashboard(); renderReports(); }
   if(id==='site-settings')loadSettingsIntoForms();
   if(id==='inbox')       renderInbox();
   if(id==='audit')       renderAudit();
@@ -2343,7 +2343,7 @@ async function saveCustomer(){
   }
   closeModal('customer-modal');
   document.getElementById('cm-name').value='';
-  renderCustomers();renderDashboard();
+  renderCustomers();renderDashboard();renderReports();
 }
 async function deleteCustomer(id){
   const c=DB.customers.find(x=>x.id===id);if(!c)return;
@@ -2370,7 +2370,7 @@ async function deleteCustomer(id){
     DB.customers=DB.customers.filter(c=>c.id!==id);
     ['customers','orders','quotations','invoices','receipts'].forEach(t=>saveToBrowser(t));
     auditLog('DELETE','Customer',`Deleted: ${c.name} + ${orderIds.length+quotIds.length+invIds.length+recIds.length} related records`);
-    renderCustomers();renderOrders('',orderFilterStatus);renderQuotations();renderInvoices();renderDashboard();
+    renderCustomers();renderOrders('',orderFilterStatus);renderQuotations();renderInvoices();renderDashboard();renderReports();
     toast('Customer deleted','error');
   });
 }
@@ -2392,7 +2392,7 @@ function filterOrderStatus(v){orderFilterStatus=v;renderOrders(document.getEleme
 function setOrderFilter(s){orderFilterStatus=orderFilterStatus===s?'':s;document.getElementById('order-status-filter').value=orderFilterStatus;renderOrders('',orderFilterStatus);}
 async function advanceOrder(id){
   const o=DB.orders.find(x=>x.id===id);const next={quotation:'approved',approved:'in_progress',in_progress:'completed'};
-  if(o&&next[o.status]){const old=o.status;o.status=next[o.status];await sbUpdate('orders',id,{status:o.status});saveToBrowser('orders');auditLog('UPDATE','Order',`${o.num}: ${old} → ${o.status}`);renderOrders('',orderFilterStatus);renderDashboard();toast('Order status updated');}
+  if(o&&next[o.status]){const old=o.status;o.status=next[o.status];await sbUpdate('orders',id,{status:o.status});saveToBrowser('orders');auditLog('UPDATE','Order',`${o.num}: ${old} → ${o.status}`);renderOrders('',orderFilterStatus);renderDashboard();renderReports();toast('Order status updated');}
 }
 function editOrder(id){
   const o=DB.orders.find(x=>x.id===id);if(!o)return;
@@ -2419,13 +2419,13 @@ async function saveOrder(){
     DB.orders.push(newRow);saveToBrowser('orders');auditLog('CREATE','Order',`Created: ${num} for ${getCustomer(custId)?.name||'?'}`);toast('Order created');
   }
   closeModal('order-modal');document.getElementById('order-modal-title').textContent='New Order';
-  renderOrders('',orderFilterStatus);renderDashboard();
+  renderOrders('',orderFilterStatus);renderDashboard();renderReports();
 }
 async function deleteOrder(id){
   const o=DB.orders.find(x=>x.id===id);
   openConfirm(`Delete order ${o?.num||''}?`,async()=>{
     await sbDelete('orders',id);DB.orders=DB.orders.filter(o=>o.id!==id);saveToBrowser('orders');
-    auditLog('DELETE','Order',`Deleted: ${o?.num}`);renderOrders('',orderFilterStatus);renderDashboard();toast('Deleted','error');
+    auditLog('DELETE','Order',`Deleted: ${o?.num}`);renderOrders('',orderFilterStatus);renderDashboard();renderReports();toast('Deleted','error');
   });
 }
 
@@ -2506,7 +2506,7 @@ async function saveInvoice(){
   const saved=await sbInsert('invoices',newRow);if(saved)newRow.id=saved.id;
   DB.invoices.push(newRow);saveToBrowser('invoices');
   auditLog('CREATE','Invoice',`Created: ${num} for ${getCustomer(custId)?.name||'?'} — ${fmtCurrency(amt)}`);
-  closeModal('invoice-modal');renderInvoices();renderDashboard();toast('Invoice created');
+  closeModal('invoice-modal');renderInvoices();renderDashboard();renderReports();toast('Invoice created');
 }
 async function saveReceipt(){
   const invId=parseInt(document.getElementById('rm-invoice').value);const amt=parseFloat(document.getElementById('rm-amount').value);
@@ -2519,13 +2519,13 @@ async function saveReceipt(){
   const inv=DB.invoices.find(i=>i.id===invId);
   if(inv){inv.paid+=amt;inv.status=inv.paid>=inv.amount?'paid':inv.paid>0?'partial':'unpaid';await sbUpdate('invoices',invId,{paid:inv.paid,status:inv.status});saveToBrowser('invoices');}
   auditLog('CREATE','Receipt',`Recorded: ${num} — ${fmtCurrency(amt)} for invoice ${inv?.num||'?'}`);
-  closeModal('receipt-modal');renderInvoices();renderDashboard();toast('Payment recorded');
+  closeModal('receipt-modal');renderInvoices();renderDashboard();renderReports();toast('Payment recorded');
 }
 async function deleteInvoice(id){
   const inv=DB.invoices.find(x=>x.id===id);
   openConfirm(`Delete invoice ${inv?.num||''}?`,async()=>{
     await sbDelete('invoices',id);DB.invoices=DB.invoices.filter(i=>i.id!==id);saveToBrowser('invoices');
-    auditLog('DELETE','Invoice',`Deleted: ${inv?.num}`);renderInvoices();renderDashboard();toast('Deleted','error');
+    auditLog('DELETE','Invoice',`Deleted: ${inv?.num}`);renderInvoices();renderDashboard();renderReports();toast('Deleted','error');
   });
 }
 
@@ -2568,15 +2568,15 @@ function filterInbox(v){_inboxFilter.text=v;renderInbox(v,_inboxFilter.status);}
 function filterInboxStatus(v){_inboxFilter.status=v;renderInbox(_inboxFilter.text,v);}
 function markAllRead(){
   DB.messages.forEach(m=>{if(m.status==='unread')m.status='read';});
-  saveToBrowser('messages');renderInbox();renderDashboard();toast('All messages marked as read');
+  saveToBrowser('messages');renderInbox();renderDashboard();renderReports();toast('All messages marked as read');
 }
 function markRead(id){
-  const m=DB.messages.find(x=>x.id===id);if(m){m.status='read';saveToBrowser('messages');renderInbox();renderDashboard();}
+  const m=DB.messages.find(x=>x.id===id);if(m){m.status='read';saveToBrowser('messages');renderInbox();renderDashboard();renderReports();}
 }
 function viewMessage(id){
   const m=DB.messages.find(x=>x.id===id);if(!m)return;
   _viewingMessageId=id;
-  if(m.status==='unread'){m.status='read';saveToBrowser('messages');renderDashboard();}
+  if(m.status==='unread'){m.status='read';saveToBrowser('messages');renderDashboard();renderReports();}
   document.getElementById('msg-from').textContent=m.name||'—';
   document.getElementById('msg-email').textContent=m.email||'—';
   document.getElementById('msg-phone').textContent=m.phone||'—';
@@ -2632,7 +2632,7 @@ async function createCustomerFromMessage(){
   populateLinkCustomerSelect(newRow.id);
   auditLog('CREATE','Customer',`Created from message: ${newRow.name}`);
   auditLog('UPDATE','Message',`Linked message → new customer: ${newRow.name}`);
-  renderInbox();renderDashboard();
+  renderInbox();renderDashboard();renderReports();
   toast('Customer created & linked');
 }
 function replyToMessage(){
@@ -2644,7 +2644,7 @@ async function deleteMessage(id){
   openConfirm('Delete this message?',async()=>{
     await sbDelete('messages',id);DB.messages=DB.messages.filter(x=>x.id!==id);saveToBrowser('messages');
     auditLog('DELETE','Message',`Deleted message from ${m?.name||m?.email}`);
-    renderInbox(_inboxFilter.text,_inboxFilter.status);renderDashboard();toast('Message deleted','error');
+    renderInbox(_inboxFilter.text,_inboxFilter.status);renderDashboard();renderReports();toast('Message deleted','error');
   });
 }
 
@@ -2882,8 +2882,11 @@ function loadSettingsIntoForms(){
   ['sub','eyebrow','cta1','cta2','trust'].forEach(k=>{const el=document.getElementById('s-hero-'+k);if(el)el.value=h[k]||'';});
   // Icon preview
   const iconData=localStorage.getItem('vyra_site_icon');
-  const prev=document.getElementById('icon-preview');
-  if(prev&&iconData){prev.innerHTML=`<img src="${iconData}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`;}
+  if(iconData){ applyLogoToAdmin(iconData); }
+  else {
+    const prev=document.getElementById('icon-preview');
+    if(prev) prev.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+  }
   const st=getSettings('stats');
   ['1','2','3','4'].forEach(n=>{const v=document.getElementById('s-stat'+n+'-val');const l=document.getElementById('s-stat'+n+'-lbl');if(v)v.value=st['s'+n+'v']||'';if(l)l.value=st['s'+n+'l']||'';});
   const c=getSettings('contact');
@@ -2920,12 +2923,25 @@ function uploadIcon(input){
   reader.onload=function(e){
     const data=e.target.result;
     localStorage.setItem('vyra_site_icon',data);
-    const prev=document.getElementById('icon-preview');
-    if(prev)prev.innerHTML=`<img src="${data}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`;
-    toast('Icon uploaded — reload the website to see it applied');
+    applyLogoToAdmin(data);
+    toast('Icon uploaded and applied');
     auditLog('UPDATE','Site Settings','Brand icon uploaded');
   };
   reader.readAsDataURL(file);
+}
+function applyLogoToAdmin(data){
+  // Update settings preview box
+  const prev=document.getElementById('icon-preview');
+  if(prev)prev.innerHTML=`<img src="${data}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`;
+  // Update login page logo mark
+  const loginMark=document.querySelector('.login-logo-mark');
+  if(loginMark)loginMark.innerHTML=`<img src="${data}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/>`;
+  // Update sidebar logo (first letters replaced with icon)
+  const sbLogo=document.querySelector('.sb-logo-mark');
+  if(sbLogo)sbLogo.innerHTML=`<img src="${data}" style="width:100%;height:100%;object-fit:cover;border-radius:8px"/>`;
+  // Update topbar brand icon if exists
+  const tbLogo=document.querySelector('.tb-logo-img');
+  if(tbLogo){tbLogo.src=data;tbLogo.style.display='block';}
 }
 function removeIcon(){
   localStorage.removeItem('vyra_site_icon');
@@ -2951,8 +2967,11 @@ function saveSettings(section){
 /* ══ INIT ══ */
 async function initApp(){
   await loadAllData();
-  renderDashboard();renderCustomers();renderOrders();renderQuotations();renderInvoices();renderReports();renderInbox();renderUsers();renderRoles();loadSettingsIntoForms();
+  renderDashboard();renderReports();renderCustomers();renderOrders();renderQuotations();renderInvoices();renderReports();renderInbox();renderUsers();renderRoles();loadSettingsIntoForms();
   applyNavPermissions();
+  // Apply saved logo immediately on login
+  const savedIcon=localStorage.getItem('vyra_site_icon');
+  if(savedIcon) applyLogoToAdmin(savedIcon);
   auditLog('LOGIN','System','Portal initialised');
 }
 
