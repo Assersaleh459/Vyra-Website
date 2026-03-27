@@ -720,68 +720,33 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
     <div class="page active" id="page-dashboard">
       <div class="pg-title">Dashboard</div>
       <div class="pg-sub">Welcome back! Here's what's happening at VYRA Systems.</div>
-
       <div class="stat-grid">
         <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(95,174,182,.12)">
-            <svg style="stroke:var(--teal)" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div>
-            <div class="stat-label">Total Clients</div>
-            <div class="stat-value" id="dash-clients">0</div>
-            <div class="stat-trend trend-up">&#x2191; 12% this month</div>
-          </div>
+          <div class="stat-icon" style="background:rgba(95,174,182,.12)"><svg style="stroke:var(--teal)" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div><div class="stat-label">Total Clients</div><div class="stat-value" id="dash-clients">0</div><div class="stat-trend trend-up" id="dash-clients-trend">—</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(59,130,246,.1)">
-            <svg style="stroke:#3b82f6" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          </div>
-          <div>
-            <div class="stat-label">Active Orders</div>
-            <div class="stat-value" id="dash-orders">0</div>
-            <div class="stat-trend trend-up">&#x2191; 8% this month</div>
-          </div>
+          <div class="stat-icon" style="background:rgba(59,130,246,.1)"><svg style="stroke:#3b82f6" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+          <div><div class="stat-label">Total Orders</div><div class="stat-value" id="dash-orders">0</div><div class="stat-trend" id="dash-orders-trend">—</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(245,158,11,.1)">
-            <svg style="stroke:#f59e0b" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-          <div>
-            <div class="stat-label">Revenue (EGP)</div>
-            <div class="stat-value" id="dash-revenue">0</div>
-            <div class="stat-trend trend-up">&#x2191; 18% vs last month</div>
-          </div>
+          <div class="stat-icon" style="background:rgba(245,158,11,.1)"><svg style="stroke:#f59e0b" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div><div class="stat-label">Revenue Collected</div><div class="stat-value" id="dash-revenue">0</div><div class="stat-trend" id="dash-revenue-trend">—</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(34,197,94,.1)">
-            <svg style="stroke:#22c55e" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </div>
-          <div>
-            <div class="stat-label">Pending Invoices</div>
-            <div class="stat-value" id="dash-invoices">0</div>
-            <div class="stat-trend trend-neutral">&#x2015; No change</div>
-          </div>
+          <div class="stat-icon" style="background:rgba(239,68,68,.1)"><svg style="stroke:var(--red)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <div><div class="stat-label">Pending Invoices</div><div class="stat-value" id="dash-invoices">0</div><div class="stat-trend trend-down" id="dash-invoices-trend">—</div></div>
         </div>
       </div>
-
       <div class="grid-cols-3-1" style="gap:16px">
         <div style="display:flex;flex-direction:column;gap:16px">
-          <!-- Revenue Chart -->
+          <!-- Dynamic Revenue by Service Chart -->
           <div class="card">
             <div class="card-header">
-              <div><div class="card-title">Monthly Revenue</div><div class="card-sub">EGP — last 7 months</div></div>
-              <span class="badge badge-teal">2025</span>
+              <div><div class="card-title">Revenue by Service</div><div class="card-sub">From all orders</div></div>
             </div>
             <div class="card-body">
-              <div class="chart-bar-wrap" id="revenue-chart">
-                <div class="chart-bar-col"><div class="chart-bar-val">48k</div><div class="chart-bar" style="height:55%"></div><div class="chart-bar-lbl">Jan</div></div>
-                <div class="chart-bar-col"><div class="chart-bar-val">62k</div><div class="chart-bar" style="height:72%"></div><div class="chart-bar-lbl">Feb</div></div>
-                <div class="chart-bar-col"><div class="chart-bar-val">55k</div><div class="chart-bar" style="height:63%"></div><div class="chart-bar-lbl">Mar</div></div>
-                <div class="chart-bar-col"><div class="chart-bar-val">78k</div><div class="chart-bar" style="height:89%"></div><div class="chart-bar-lbl">Apr</div></div>
-                <div class="chart-bar-col"><div class="chart-bar-val">91k</div><div class="chart-bar" style="height:100%"></div><div class="chart-bar-lbl">May</div></div>
-                <div class="chart-bar-col"><div class="chart-bar-val">84k</div><div class="chart-bar" style="height:92%"></div><div class="chart-bar-lbl">Jun</div></div>
-                <div class="chart-bar-col"><div class="chart-bar-val">102k</div><div class="chart-bar" style="height:115%;background:linear-gradient(180deg,#5FAEB6,#7CC6CC)"></div><div class="chart-bar-lbl">Jul</div></div>
-              </div>
+              <div id="dash-revenue-chart"><div style="text-align:center;padding:24px;color:var(--text3);font-size:.82rem">No orders yet</div></div>
             </div>
           </div>
           <!-- Recent Orders -->
@@ -798,64 +763,38 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
             </div>
           </div>
         </div>
-        <!-- Right column -->
         <div style="display:flex;flex-direction:column;gap:16px">
-          <!-- Service Mix -->
+          <!-- Dynamic Service Mix Donut -->
           <div class="card">
-            <div class="card-header"><div class="card-title">Service Mix</div></div>
+            <div class="card-header"><div class="card-title">Service Mix</div><div class="card-sub">By order count</div></div>
             <div class="card-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-              <div class="donut-wrap">
-                <svg viewBox="0 0 36 36" style="transform:rotate(-90deg)">
+              <div class="donut-wrap" style="width:110px;height:110px;flex-shrink:0">
+                <svg id="dash-donut-svg" viewBox="0 0 36 36" style="transform:rotate(-90deg)">
                   <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EEF3FA" stroke-width="3.5"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#5FAEB6" stroke-width="3.5" stroke-dasharray="42 58" stroke-dashoffset="0"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#223B73" stroke-width="3.5" stroke-dasharray="28 72" stroke-dashoffset="-42"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7CC6CC" stroke-width="3.5" stroke-dasharray="18 82" stroke-dashoffset="-70"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#8A9CC0" stroke-width="3.5" stroke-dasharray="12 88" stroke-dashoffset="-88"/>
                 </svg>
-                <div class="donut-label">100%<span>Total</span></div>
+                <div class="donut-label"><span id="dash-donut-total">0</span><span id="dash-donut-sub">orders</span></div>
               </div>
-              <div style="flex:1">
-                <div class="legend-item"><div class="legend-dot" style="background:#5FAEB6"></div><span class="legend-label">CCTV</span><span class="legend-val">42%</span></div>
-                <div class="legend-item"><div class="legend-dot" style="background:#223B73"></div><span class="legend-label">Networking</span><span class="legend-val">28%</span></div>
-                <div class="legend-item"><div class="legend-dot" style="background:#7CC6CC"></div><span class="legend-label">Sound</span><span class="legend-val">18%</span></div>
-                <div class="legend-item"><div class="legend-dot" style="background:#8A9CC0"></div><span class="legend-label">Automation</span><span class="legend-val">12%</span></div>
-              </div>
+              <div style="flex:1" id="dash-donut-legend"><div style="font-size:.75rem;color:var(--text3)">No orders yet</div></div>
             </div>
           </div>
           <!-- Quick Actions -->
           <div class="card">
             <div class="card-header"><div class="card-title">Quick Actions</div></div>
             <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
-              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('customer-modal')">
-                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                Add Customer
-              </button>
-              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('order-modal')">
-                <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                New Order
-              </button>
-              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('quotation-modal')">
-                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Create Quotation
-              </button>
-              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('invoice-modal')">
-                <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                New Invoice
-              </button>
+              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('customer-modal')"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Add Customer</button>
+              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('order-modal')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>New Order</button>
+              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('quotation-modal')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Create Quotation</button>
+              <button class="btn btn-outline" style="justify-content:flex-start" onclick="openModal('invoice-modal')"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>New Invoice</button>
             </div>
           </div>
           <!-- Order Pipeline -->
           <div class="card">
             <div class="card-header"><div class="card-title">Order Pipeline</div></div>
-            <div class="card-body">
-              <div style="display:flex;flex-direction:column;gap:10px" id="pipeline-stats"></div>
-            </div>
+            <div class="card-body"><div id="pipeline-stats" style="display:flex;flex-direction:column;gap:10px"></div></div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- ══ CUSTOMERS ══ -->
     <div class="page" id="page-customers">
       <div class="pg-title">Customers</div>
       <div class="pg-sub">Manage your client database</div>
@@ -1135,121 +1074,231 @@ textarea.form-ctrl{resize:vertical;min-height:80px}
     </div>
     <div class="page" id="page-site-settings">
       <div class="pg-title">Site Settings</div>
-      <div class="pg-sub">Control public website content in real-time</div>
+      <div class="pg-sub">Edit your public website content — changes apply instantly when saved</div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px 16px;background:rgba(95,174,182,.08);border:1px solid rgba(95,174,182,.25);border-radius:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span style="font-size:.8rem;color:var(--text2)">Changes are saved to your browser and applied when visitors open the website. <strong>Both files must be in the same folder.</strong></span>
+        <a class="btn btn-outline btn-sm" href="index.html" target="_blank" style="margin-left:auto">
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Preview Site
+        </a>
+      </div>
+
       <div class="settings-layout">
+        <!-- LEFT NAV -->
         <div class="settings-nav">
           <div class="settings-nav-item active" onclick="switchSettingsTab('hero',this)">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
-            Hero Section
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>Hero
           </div>
           <div class="settings-nav-item" onclick="switchSettingsTab('stats',this)">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            Stats Bar
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Stats Bar
           </div>
-          <div class="settings-nav-item" onclick="switchSettingsTab('company',this)">
-            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-            Company Info
+          <div class="settings-nav-item" onclick="switchSettingsTab('services',this)">
+            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Services
+          </div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('contact',this)">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.1 19.79 19.79 0 0 1 1.64 4.5 2 2 0 0 1 3.61 2.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 19.73Z"/></svg>Contact
+          </div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('about',this)">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>About
+          </div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('team',this)">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Team
+          </div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('why',this)">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Why Us
           </div>
           <div class="settings-nav-item" onclick="switchSettingsTab('seo',this)">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            SEO & Meta
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>SEO &amp; Meta
           </div>
         </div>
+
+        <!-- RIGHT PANELS -->
         <div>
+
+          <!-- HERO -->
           <div id="settings-tab-hero">
             <div class="card">
               <div class="card-header" style="justify-content:space-between">
-                <div><div class="card-title">Hero Section</div><div class="card-sub">Main banner on the homepage</div></div>
-                <div style="display:flex;align-items:center;gap:6px">
-                  <span style="font-size:.7rem;color:var(--green);font-weight:600">&#x25cf; Live</span>
-                  <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Changes</button>
-                </div>
+                <div><div class="card-title">Hero Section</div><div class="card-sub">Main banner — first thing visitors see</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings('hero')">Save Changes</button>
               </div>
               <div class="card-body">
-                <div class="form-row form-row-2">
-                  <div class="form-group">
-                    <label class="form-label">Hero Title <span>*</span></label>
-                    <input class="form-ctrl" id="s-hero-title" value="Engineering Tomorrow's Environments"/>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Primary CTA Button</label>
-                    <input class="form-ctrl" id="s-cta-primary" value="Get Free Quote"/>
-                  </div>
+                <div class="form-row form-row-3">
+                  <div class="form-group"><label class="form-label">Title Line 1</label><input class="form-ctrl" id="s-hero-l1" placeholder="Engineering"/></div>
+                  <div class="form-group"><label class="form-label">Title Line 2 (teal)</label><input class="form-ctrl" id="s-hero-l2" placeholder="Tomorrow's"/></div>
+                  <div class="form-group"><label class="form-label">Title Line 3</label><input class="form-ctrl" id="s-hero-l3" placeholder="Environments"/></div>
                 </div>
                 <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label">Hero Subtitle</label>
-                    <textarea class="form-ctrl" id="s-hero-sub" rows="3">We engineer high-performance technology environments &mdash; seamless connectivity, robust security, and intelligent automation for Egypt's leading businesses.</textarea>
-                  </div>
+                  <div class="form-group"><label class="form-label">Subtitle Paragraph</label><textarea class="form-ctrl" id="s-hero-sub" rows="3"></textarea></div>
                 </div>
                 <div class="form-row form-row-2">
-                  <div class="form-group">
-                    <label class="form-label">Secondary CTA Button</label>
-                    <input class="form-ctrl" id="s-cta-secondary" value="Explore Services"/>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Eyebrow Label</label>
-                    <input class="form-ctrl" value="Egypt's Technology Integrator"/>
-                  </div>
+                  <div class="form-group"><label class="form-label">Eyebrow Label</label><input class="form-ctrl" id="s-hero-eyebrow" placeholder="Egypt's Technology Integrator"/></div>
+                  <div class="form-group"><label class="form-label">Primary Button Text</label><input class="form-ctrl" id="s-hero-cta1" placeholder="Get Free Quote"/></div>
+                </div>
+                <div class="form-row form-row-2">
+                  <div class="form-group"><label class="form-label">Secondary Button Text</label><input class="form-ctrl" id="s-hero-cta2" placeholder="Explore Services"/></div>
+                  <div class="form-group"><label class="form-label">Trust Pills (comma-separated)</label><input class="form-ctrl" id="s-hero-trust" placeholder="Hotels, Banks, Hospitals..."/></div>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- STATS -->
           <div id="settings-tab-stats" style="display:none">
             <div class="card">
               <div class="card-header" style="justify-content:space-between">
-                <div><div class="card-title">Stats Bar</div><div class="card-sub">4 key metrics shown on homepage</div></div>
-                <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Changes</button>
+                <div><div class="card-title">Stats Bar</div><div class="card-sub">4 numbers displayed below the hero</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings('stats')">Save Changes</button>
               </div>
               <div class="card-body">
                 <div class="form-row form-row-2">
-                  <div class="form-group"><label class="form-label">Years Experience</label><input class="form-ctrl" value="10+"/></div>
-                  <div class="form-group"><label class="form-label">Happy Clients</label><input class="form-ctrl" value="500+"/></div>
-                  <div class="form-group"><label class="form-label">Projects Completed</label><input class="form-ctrl" value="1,000+"/></div>
-                  <div class="form-group"><label class="form-label">Support Label</label><input class="form-ctrl" value="24/7"/></div>
+                  <div class="form-group"><label class="form-label">Stat 1 Value</label><input class="form-ctrl" id="s-stat1-val" placeholder="10+"/></div>
+                  <div class="form-group"><label class="form-label">Stat 1 Label</label><input class="form-ctrl" id="s-stat1-lbl" placeholder="Years of Excellence"/></div>
+                  <div class="form-group"><label class="form-label">Stat 2 Value</label><input class="form-ctrl" id="s-stat2-val" placeholder="500+"/></div>
+                  <div class="form-group"><label class="form-label">Stat 2 Label</label><input class="form-ctrl" id="s-stat2-lbl" placeholder="Satisfied Clients"/></div>
+                  <div class="form-group"><label class="form-label">Stat 3 Value</label><input class="form-ctrl" id="s-stat3-val" placeholder="1K+"/></div>
+                  <div class="form-group"><label class="form-label">Stat 3 Label</label><input class="form-ctrl" id="s-stat3-lbl" placeholder="Projects Completed"/></div>
+                  <div class="form-group"><label class="form-label">Stat 4 Value</label><input class="form-ctrl" id="s-stat4-val" placeholder="24/7"/></div>
+                  <div class="form-group"><label class="form-label">Stat 4 Label</label><input class="form-ctrl" id="s-stat4-lbl" placeholder="Technical Support"/></div>
                 </div>
               </div>
             </div>
           </div>
-          <div id="settings-tab-company" style="display:none">
+
+          <!-- SERVICES -->
+          <div id="settings-tab-services" style="display:none">
             <div class="card">
               <div class="card-header" style="justify-content:space-between">
-                <div><div class="card-title">Company Information</div><div class="card-sub">Appears in footer and contact page</div></div>
-                <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Changes</button>
+                <div><div class="card-title">Services</div><div class="card-sub">4 service cards on the homepage and services page</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings('services')">Save Changes</button>
+              </div>
+              <div class="card-body" style="display:flex;flex-direction:column;gap:24px">
+                <div id="services-editor"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CONTACT -->
+          <div id="settings-tab-contact" style="display:none">
+            <div class="card">
+              <div class="card-header" style="justify-content:space-between">
+                <div><div class="card-title">Contact Information</div><div class="card-sub">Shown in contact page, footer and nav</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings('contact')">Save Changes</button>
               </div>
               <div class="card-body">
                 <div class="form-row form-row-2">
-                  <div class="form-group"><label class="form-label">Company Name</label><input class="form-ctrl" value="VYRA Systems"/></div>
-                  <div class="form-group"><label class="form-label">Phone Number</label><input class="form-ctrl" value="+20 100 000 0000"/></div>
-                  <div class="form-group"><label class="form-label">Email Address</label><input class="form-ctrl" value="info@vyrasystems.com"/></div>
-                  <div class="form-group"><label class="form-label">Office Address</label><input class="form-ctrl" value="New Cairo, 5th Settlement"/></div>
+                  <div class="form-group"><label class="form-label">Company Name</label><input class="form-ctrl" id="s-company-name" placeholder="VYRA Systems"/></div>
+                  <div class="form-group"><label class="form-label">Tagline / Brand Sub</label><input class="form-ctrl" id="s-company-tagline" placeholder="Systems"/></div>
+                  <div class="form-group"><label class="form-label">Phone Number</label><input class="form-ctrl" id="s-phone" placeholder="+20 100 000 0000" type="tel"/></div>
+                  <div class="form-group"><label class="form-label">Email Address</label><input class="form-ctrl" id="s-email" placeholder="info@vyrasystems.com" type="email"/></div>
+                  <div class="form-group"><label class="form-label">Office City / Area</label><input class="form-ctrl" id="s-office-city" placeholder="New Cairo, Egypt"/></div>
+                  <div class="form-group"><label class="form-label">Office Sub-address</label><input class="form-ctrl" id="s-office-sub" placeholder="5th Settlement, Cairo Governorate"/></div>
+                </div>
+                <div class="form-row form-row-3">
+                  <div class="form-group"><label class="form-label">Facebook URL</label><input class="form-ctrl" id="s-social-fb" placeholder="https://facebook.com/..."/></div>
+                  <div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-ctrl" id="s-social-li" placeholder="https://linkedin.com/..."/></div>
+                  <div class="form-group"><label class="form-label">Instagram URL</label><input class="form-ctrl" id="s-social-ig" placeholder="https://instagram.com/..."/></div>
                 </div>
                 <div class="form-row">
-                  <div class="form-group"><label class="form-label">About Description</label><textarea class="form-ctrl" rows="3">VYRA Systems is Egypt's premier provider of integrated security and networking solutions.</textarea></div>
+                  <div class="form-group"><label class="form-label">Footer Description</label><textarea class="form-ctrl" id="s-footer-desc" rows="2" placeholder="Egypt's leading provider..."></textarea></div>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- ABOUT -->
+          <div id="settings-tab-about" style="display:none">
+            <div class="card">
+              <div class="card-header" style="justify-content:space-between">
+                <div><div class="card-title">About Page</div><div class="card-sub">Story, mission, vision and company stats</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings('about')">Save Changes</button>
+              </div>
+              <div class="card-body">
+                <div class="form-row form-row-2">
+                  <div class="form-group"><label class="form-label">Page Headline</label><input class="form-ctrl" id="s-about-headline" placeholder="Securing Egypt's Businesses Since 2014"/></div>
+                  <div class="form-group"><label class="form-label">Page Sub-headline</label><input class="form-ctrl" id="s-about-sub" placeholder="Egypt's Most Trusted Partner"/></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">Story Paragraph 1</label><textarea class="form-ctrl" id="s-about-p1" rows="3"></textarea></div>
+                  <div class="form-group"><label class="form-label">Story Paragraph 2</label><textarea class="form-ctrl" id="s-about-p2" rows="2"></textarea></div>
+                </div>
+                <div class="divider" style="margin:8px 0"></div>
+                <div style="font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:12px">Company Stats (4 numbers)</div>
+                <div class="form-row form-row-2">
+                  <div class="form-group"><label class="form-label">Stat 1 Value</label><input class="form-ctrl" id="s-as1-val" placeholder="10+"/></div>
+                  <div class="form-group"><label class="form-label">Stat 1 Label</label><input class="form-ctrl" id="s-as1-lbl" placeholder="Years Experience"/></div>
+                  <div class="form-group"><label class="form-label">Stat 2 Value</label><input class="form-ctrl" id="s-as2-val" placeholder="500+"/></div>
+                  <div class="form-group"><label class="form-label">Stat 2 Label</label><input class="form-ctrl" id="s-as2-lbl" placeholder="Happy Clients"/></div>
+                  <div class="form-group"><label class="form-label">Stat 3 Value</label><input class="form-ctrl" id="s-as3-val" placeholder="1,000+"/></div>
+                  <div class="form-group"><label class="form-label">Stat 3 Label</label><input class="form-ctrl" id="s-as3-lbl" placeholder="Projects Done"/></div>
+                  <div class="form-group"><label class="form-label">Stat 4 Value</label><input class="form-ctrl" id="s-as4-val" placeholder="25+"/></div>
+                  <div class="form-group"><label class="form-label">Stat 4 Label</label><input class="form-ctrl" id="s-as4-lbl" placeholder="Certified Engineers"/></div>
+                </div>
+                <div class="divider" style="margin:8px 0"></div>
+                <div style="font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:12px">Mission &amp; Vision</div>
+                <div class="form-row form-row-2">
+                  <div class="form-group"><label class="form-label">Mission Statement</label><textarea class="form-ctrl" id="s-mission" rows="3"></textarea></div>
+                  <div class="form-group"><label class="form-label">Vision Statement</label><textarea class="form-ctrl" id="s-vision" rows="3"></textarea></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TEAM -->
+          <div id="settings-tab-team" style="display:none">
+            <div class="card">
+              <div class="card-header" style="justify-content:space-between">
+                <div><div class="card-title">Team Members</div><div class="card-sub">Shown on the About page</div></div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-outline btn-sm" onclick="addTeamMember()">+ Add Member</button>
+                  <button class="btn btn-primary btn-sm" onclick="saveSettings('team')">Save Changes</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="team-editor" style="display:flex;flex-direction:column;gap:12px"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WHY US -->
+          <div id="settings-tab-why" style="display:none">
+            <div class="card">
+              <div class="card-header" style="justify-content:space-between">
+                <div><div class="card-title">Why VYRA Section</div><div class="card-sub">Checklist items and stat cards</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings('why')">Save Changes</button>
+              </div>
+              <div class="card-body">
+                <div style="font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:12px">Checklist Items (6)</div>
+                <div class="form-row" style="gap:8px" id="why-checklist-editor"></div>
+                <div class="divider" style="margin:16px 0 12px"></div>
+                <div style="font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:12px">Stat Cards (4)</div>
+                <div class="form-row form-row-2" id="why-stats-editor"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEO -->
           <div id="settings-tab-seo" style="display:none">
             <div class="card">
               <div class="card-header" style="justify-content:space-between">
-                <div><div class="card-title">SEO & Meta Tags</div><div class="card-sub">Search engine optimization settings</div></div>
-                <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Changes</button>
+                <div><div class="card-title">SEO &amp; Meta Tags</div><div class="card-sub">Controls how Google and social media show your site</div></div>
+                <button class="btn btn-primary btn-sm" onclick="saveSettings('seo')">Save Changes</button>
               </div>
               <div class="card-body">
                 <div class="form-row">
-                  <div class="form-group"><label class="form-label">Page Title</label><input class="form-ctrl" value="VYRA Systems &mdash; Engineering Tomorrow's Environments"/></div>
-                  <div class="form-group"><label class="form-label">Meta Description</label><textarea class="form-ctrl" rows="2">VYRA Systems engineers high-performance technology environments &mdash; networking, CCTV, sound systems and smart automation for Egypt's leading businesses.</textarea></div>
-                  <div class="form-group"><label class="form-label">Keywords</label><input class="form-ctrl" value="CCTV Egypt, Networking Egypt, Security Systems Cairo, Smart Home Egypt"/></div>
+                  <div class="form-group"><label class="form-label">Page Title (browser tab + Google)</label><input class="form-ctrl" id="s-seo-title" placeholder="VYRA Systems — Engineering Tomorrow's Environments"/></div>
+                  <div class="form-group"><label class="form-label">Meta Description (Google snippet — 150 chars)</label><textarea class="form-ctrl" id="s-seo-desc" rows="3"></textarea></div>
+                  <div class="form-group"><label class="form-label">Keywords</label><input class="form-ctrl" id="s-seo-keywords" placeholder="CCTV Egypt, Networking Cairo, Security Systems..."/></div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- ══ USERS ══ -->
+        </div><!-- /right panels -->
+      </div><!-- /settings-layout -->
+    </div>
     <div class="page" id="page-users">
       <div class="pg-title">User Management</div>
       <div class="pg-sub">Manage admin portal users and their access</div>
@@ -1791,46 +1840,65 @@ async function sbDelete(table, id) {
 async function loadAllData() {
   showLoadingOverlay(true);
   if (ONLINE) {
-    // Fetch from Supabase
     const tables = ['customers','orders','quotations','invoices','receipts','users'];
     const results = await Promise.all(tables.map(t => sbFetch(t)));
+    let seeded = false;
     tables.forEach((t, i) => {
-      if (results[i] && results[i].length > 0) {
+      if (results[i] === null) {
+        // Fetch error — fall back to seed only if DB is empty
+        if (!DB[t].length) { DB[t] = SEED[t]; }
+      } else if (results[i].length === 0) {
+        // Table exists and is genuinely empty — check if we've ever seeded
+        const everSeeded = localStorage.getItem('vyra_seeded_'+t);
+        if (!everSeeded) {
+          // First run — seed it
+          DB[t] = SEED[t];
+          seedTable(t);
+          localStorage.setItem('vyra_seeded_'+t, '1');
+          seeded = true;
+        } else {
+          // User deleted all records — keep empty
+          DB[t] = [];
+        }
+      } else {
+        // Table has data — use it
         let rows = results[i];
-        // Normalise Supabase column names → JS field names
         if (t === 'orders') rows = rows.map(r => ({...r, desc: r.description || r.desc || ''}));
         if (t === 'users')  rows = rows.map(r => ({...r, lastActive: r.last_active || r.lastActive || '—'}));
         DB[t] = rows;
-      } else if (results[i] !== null) {
-        // Table exists but empty — seed it
-        DB[t] = SEED[t];
-        seedTable(t);
-      } else {
-        // Error — fall back to seed data
-        DB[t] = SEED[t];
+        localStorage.setItem('vyra_seeded_'+t, '1');
       }
     });
-    // Compute nextIds from loaded data
+    // Compute nextIds
     ['customers','orders','invoices','receipts','users'].forEach(t => {
-      const key = t.slice(0,-1); // remove 's'
+      const key = t.slice(0,-1);
       nextIds[key === 'customer' ? 'customer' : key] =
         (DB[t].length ? Math.max(...DB[t].map(r => r.id)) + 1 : 1);
     });
     nextIds.quotation = DB.quotations.length ? Math.max(...DB.quotations.map(r=>r.id))+1 : 1;
     toast('Connected to database', 'success');
   } else {
-    // Offline mode — load seed data and persist in localStorage
+    // Offline mode — use localStorage (already updated by delete operations)
     const tables = ['customers','orders','quotations','invoices','receipts','users'];
     tables.forEach(t => {
       try {
         const stored = localStorage.getItem('vyra_'+t);
-        DB[t] = stored ? JSON.parse(stored) : SEED[t];
-        if (!stored) localStorage.setItem('vyra_'+t, JSON.stringify(SEED[t]));
+        const everSeeded = localStorage.getItem('vyra_seeded_'+t);
+        if (stored !== null) {
+          // Use whatever is in localStorage (may be empty after deletions)
+          DB[t] = JSON.parse(stored);
+        } else if (!everSeeded) {
+          // First run — seed
+          DB[t] = SEED[t];
+          localStorage.setItem('vyra_'+t, JSON.stringify(SEED[t]));
+          localStorage.setItem('vyra_seeded_'+t, '1');
+        } else {
+          DB[t] = [];
+        }
       } catch(e) {
         DB[t] = SEED[t];
       }
     });
-    // Recompute nextIds
     nextIds.customer  = DB.customers.length  ? Math.max(...DB.customers.map(r=>r.id))+1  : 1;
     nextIds.order     = DB.orders.length     ? Math.max(...DB.orders.map(r=>r.id))+1     : 1;
     nextIds.quotation = DB.quotations.length ? Math.max(...DB.quotations.map(r=>r.id))+1 : 1;
@@ -1843,9 +1911,11 @@ async function loadAllData() {
 }
 
 function saveToBrowser(table) {
-  if (!ONLINE) {
-    try { localStorage.setItem('vyra_'+table, JSON.stringify(DB[table])); } catch(e) {}
-  }
+  // Always save to localStorage so deletions survive page refresh
+  try {
+    localStorage.setItem('vyra_'+table, JSON.stringify(DB[table]));
+    localStorage.setItem('vyra_seeded_'+table, '1');
+  } catch(e) {}
 }
 
 async function seedTable(table) {
@@ -1926,14 +1996,15 @@ function showPage(id){
   document.getElementById('tb-title').textContent=PAGE_TITLES[id]||id;
   document.getElementById('tb-crumb').textContent=PAGE_CRUMBS[id]||id;
   closeMobSidebar();
-  if(id==='dashboard')   renderDashboard();
-  if(id==='customers')   renderCustomers();
-  if(id==='orders')      renderOrders();
-  if(id==='quotations')  renderQuotations();
-  if(id==='invoices')    renderInvoices();
-  if(id==='reports')     renderReports();
-  if(id==='users')       renderUsers();
-  if(id==='roles')       renderRoles();
+  if(id==='dashboard')    renderDashboard();
+  if(id==='customers')    renderCustomers();
+  if(id==='orders')       renderOrders();
+  if(id==='quotations')   renderQuotations();
+  if(id==='invoices')     renderInvoices();
+  if(id==='reports')      renderReports();
+  if(id==='site-settings')loadSettingsIntoForms();
+  if(id==='users')        renderUsers();
+  if(id==='roles')        renderRoles();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -2027,24 +2098,142 @@ const METHOD_LABELS={cash:'Cash',bank_transfer:'Bank Transfer',check:'Check',car
    DASHBOARD
 ══════════════════════════════════════════════════════ */
 function renderDashboard(){
-  document.getElementById('dash-clients').textContent=DB.customers.length;
-  document.getElementById('dash-orders').textContent=DB.orders.length;
-  document.getElementById('dash-revenue').textContent=fmtCurrency(DB.invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+i.amount,0));
-  document.getElementById('dash-invoices').textContent=DB.invoices.filter(i=>i.status!=='paid').length;
-  document.getElementById('sb-customers-count').textContent=DB.customers.length;
-  document.getElementById('sb-orders-count').textContent=DB.orders.length;
-  const tbody=document.getElementById('dash-orders-table');
-  tbody.innerHTML=DB.orders.slice(0,5).map(o=>{
-    const c=getCustomer(o.customer_id);
-    return`<tr><td class="td-mono">${o.num}</td><td><div style="font-weight:600">${c?.name||'—'}</div></td><td>${STATUS_BADGE[o.status]||o.status}</td><td class="td-mono">${fmtCurrency(o.amount)}</td><td class="td-light">${fmtDate(o.created)}</td></tr>`;
-  }).join('');
-  const PIPE_COLORS={quotation:'var(--amber)',approved:'var(--blue)',in_progress:'var(--purple)',completed:'var(--green)'};
-  const PIPE_LABELS={quotation:'Quotation',approved:'Approved',in_progress:'In Progress',completed:'Completed'};
-  document.getElementById('pipeline-stats').innerHTML=['quotation','approved','in_progress','completed'].map(s=>{
-    const cnt=DB.orders.filter(o=>o.status===s).length;
-    const pct=Math.round((cnt/Math.max(DB.orders.length,1))*100);
-    return`<div><div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px"><span style="font-weight:600;color:var(--text2)">${PIPE_LABELS[s]}</span><span style="font-weight:700;color:${PIPE_COLORS[s]}">${cnt} orders</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${PIPE_COLORS[s]}"></div></div></div>`;
-  }).join('');
+  // ── KPI Cards
+  const totalRevenue  = DB.invoices.reduce((s,i)=>s+(i.paid||0), 0);
+  const pendingInvs   = DB.invoices.filter(i=>i.status!=='paid');
+  const pendingAmt    = pendingInvs.reduce((s,i)=>s+Math.max(0,(i.amount||0)-(i.paid||0)), 0);
+  const completedOrds = DB.orders.filter(o=>o.status==='completed').length;
+
+  document.getElementById('dash-clients').textContent       = DB.customers.length;
+  document.getElementById('dash-orders').textContent        = DB.orders.length;
+  document.getElementById('dash-revenue').textContent       = fmtCurrency(totalRevenue);
+  document.getElementById('dash-invoices').textContent      = pendingInvs.length;
+  document.getElementById('sb-customers-count').textContent = DB.customers.length;
+  document.getElementById('sb-orders-count').textContent    = DB.orders.length;
+
+  // Trend labels
+  const dct = document.getElementById('dash-clients-trend');
+  const dot = document.getElementById('dash-orders-trend');
+  const drt = document.getElementById('dash-revenue-trend');
+  const dit = document.getElementById('dash-invoices-trend');
+  if(dct) dct.textContent = DB.customers.length + ' client' + (DB.customers.length!==1?'s':'') + ' in database';
+  if(dot) dot.textContent = completedOrds + ' completed, ' + (DB.orders.length-completedOrds) + ' active';
+  if(drt) drt.textContent = DB.receipts.length + ' payment' + (DB.receipts.length!==1?'s':'') + ' recorded';
+  if(dit) dit.textContent = pendingInvs.length ? fmtCurrency(pendingAmt) + ' outstanding' : 'All invoices paid';
+
+  // ── Recent Orders Table
+  const tbody = document.getElementById('dash-orders-table');
+  if(tbody){
+    tbody.innerHTML = DB.orders.slice(0,5).map(o=>{
+      const c = getCustomer(o.customer_id);
+      return `<tr>
+        <td class="td-mono">${o.num}</td>
+        <td><div style="font-weight:600">${c?.name||'—'}</div></td>
+        <td>${STATUS_BADGE[o.status]||o.status}</td>
+        <td class="td-mono">${fmtCurrency(o.amount)}</td>
+        <td class="td-light">${fmtDate(o.created)}</td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3);font-size:.82rem">No orders yet</td></tr>`;
+  }
+
+  // ── Order Pipeline
+  const PIPE_COLORS = {quotation:'var(--amber)',approved:'var(--blue)',in_progress:'var(--purple)',completed:'var(--green)'};
+  const PIPE_LABELS = {quotation:'Quotation',approved:'Approved',in_progress:'In Progress',completed:'Completed'};
+  const pipeEl = document.getElementById('pipeline-stats');
+  if(pipeEl){
+    if(!DB.orders.length){
+      pipeEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:.82rem">No orders yet</div>';
+    } else {
+      pipeEl.innerHTML = ['quotation','approved','in_progress','completed'].map(s=>{
+        const cnt = DB.orders.filter(o=>o.status===s).length;
+        const pct = Math.round((cnt/DB.orders.length)*100);
+        return `<div>
+          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px">
+            <span style="font-weight:600;color:var(--text2)">${PIPE_LABELS[s]}</span>
+            <span style="font-weight:700;color:${PIPE_COLORS[s]}">${cnt} order${cnt!==1?'s':''}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${PIPE_COLORS[s]}"></div></div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Service Mix Donut (dynamic from DB.orders)
+  const svcMap = {};
+  DB.orders.forEach(o=>{
+    const svc = (o.service||'Other').split('&')[0].trim().split(' ').slice(0,2).join(' ');
+    svcMap[svc] = (svcMap[svc]||0) + 1;
+  });
+  const total = DB.orders.length;
+  const SVC_COLORS = ['#5FAEB6','#223B73','#7CC6CC','#8A9CC0','#f59e0b','#8b5cf6'];
+  const svcEntries = Object.entries(svcMap).sort((a,b)=>b[1]-a[1]);
+
+  const donutTotalEl = document.getElementById('dash-donut-total');
+  const donutSubEl   = document.getElementById('dash-donut-sub');
+  const donutSvg     = document.getElementById('dash-donut-svg');
+  const donutLegend  = document.getElementById('dash-donut-legend');
+
+  if(donutTotalEl) donutTotalEl.textContent = total;
+  if(donutSubEl)   donutSubEl.textContent   = 'order' + (total!==1?'s':'');
+
+  if(donutSvg){
+    // Build SVG circles
+    const CIRCUMFERENCE = 100; // 2π×r ≈ 100 for r=15.9
+    let offset = 0;
+    let circles = '<circle cx="18" cy="18" r="15.9" fill="none" stroke="#EEF3FA" stroke-width="3.5"/>';
+    if(total > 0){
+      svcEntries.forEach(([svc, cnt], i)=>{
+        const pct = (cnt/total)*100;
+        const gap = 100-pct;
+        circles += `<circle cx="18" cy="18" r="15.9" fill="none" stroke="${SVC_COLORS[i%SVC_COLORS.length]}" stroke-width="3.5" stroke-dasharray="${pct.toFixed(1)} ${gap.toFixed(1)}" stroke-dashoffset="${-offset.toFixed(1)}"/>`;
+        offset += pct;
+      });
+    }
+    donutSvg.innerHTML = circles;
+  }
+
+  if(donutLegend){
+    if(!total){
+      donutLegend.innerHTML = '<div style="font-size:.75rem;color:var(--text3)">No orders yet</div>';
+    } else {
+      donutLegend.innerHTML = svcEntries.map(([svc, cnt], i)=>{
+        const pct = Math.round((cnt/total)*100);
+        return `<div class="legend-item">
+          <div class="legend-dot" style="background:${SVC_COLORS[i%SVC_COLORS.length]}"></div>
+          <span class="legend-label">${svc}</span>
+          <span class="legend-val">${pct}%</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Revenue by Service (bar chart)
+  const revMap = {};
+  DB.orders.forEach(o=>{
+    const svc = (o.service||'Other').split('&')[0].trim().split(' ').slice(0,2).join(' ');
+    revMap[svc] = (revMap[svc]||0) + (o.amount||0);
+  });
+  const revEntries = Object.entries(revMap).sort((a,b)=>b[1]-a[1]);
+  const maxRev = revEntries.length ? revEntries[0][1] : 1;
+  const revChart = document.getElementById('dash-revenue-chart');
+  if(revChart){
+    if(!revEntries.length){
+      revChart.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:.82rem">No orders yet</div>';
+    } else {
+      revChart.innerHTML = revEntries.map(([svc, amt], i)=>{
+        const pct = Math.round((amt/maxRev)*100);
+        return `<div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <span style="font-size:.8rem;font-weight:600;color:var(--text)">${svc}</span>
+            <span style="font-size:.8rem;font-weight:700;color:var(--teal);font-family:monospace">${fmtCurrency(amt)}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${pct}%;background:${SVC_COLORS[i%SVC_COLORS.length]}"></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -2789,14 +2978,290 @@ function renderReports(){
 }
 
 
-function switchSettingsTab(tab,el){
-  ['hero','stats','company','seo'].forEach(t=>{
-    document.getElementById('settings-tab-'+t).style.display=t===tab?'block':'none';
-  });
-  document.querySelectorAll('.settings-nav-item').forEach(i=>i.classList.remove('active'));
-  el.classList.add('active');
+/* ══════════════════════════════════════════════════════
+   SITE SETTINGS
+══════════════════════════════════════════════════════ */
+
+// Default content matching the public website
+const SITE_DEFAULTS = {
+  hero: {
+    l1:'Engineering', l2:"Tomorrow's", l3:'Environments',
+    sub:'We engineer high-performance technology environments — seamless connectivity, robust security, and intelligent automation for Egypt\'s leading businesses and residences.',
+    eyebrow:"Egypt's Technology Integrator",
+    cta1:'Get Free Quote', cta2:'Explore Services',
+    trust:'Hotels,Banks,Hospitals,Government,Retail,Education'
+  },
+  stats: {
+    s1v:'10+', s1l:'Years of Excellence',
+    s2v:'500+', s2l:'Satisfied Clients',
+    s3v:'1K+', s3l:'Projects Completed',
+    s4v:'24/7', s4l:'Technical Support'
+  },
+  services: [
+    {title:'Networking & IT Infrastructure', desc:'Enterprise-grade architectures built for zero downtime — structured cabling, enterprise switching and seamless Wi-Fi coverage across your entire property.', tags:'Structured Cabling,Enterprise Switching,Zero Dead Zones'},
+    {title:'Advanced CCTV & Security',       desc:'Next-generation surveillance beyond outdated analog — ultra-HD 4K IP cameras, biometric access control, and intelligent hybrid storage ecosystems.', tags:'4K IP Cameras,Biometric Access,Smart Detection'},
+    {title:'Innovative Sound & Audio',        desc:'From active security deterrence to immersive commercial soundscapes — crystal-clear sound distribution for retail, hospitality and corporate environments.', tags:'Multi-Zone Audio,PA & Deterrence,Commercial Audio'},
+    {title:'Smart Home & Business Automation',desc:'One unified, intelligent system — lighting, curtains, climate and security all controlled from a single intuitive smartphone app.', tags:'Mobile Control,Safety Sensors,Smart Climate'}
+  ],
+  contact: {
+    name:'VYRA Systems', tagline:'Systems',
+    phone:'+20 100 000 0000', email:'info@vyrasystems.com',
+    city:'New Cairo, Egypt', sub:'5th Settlement, Cairo Governorate',
+    fb:'#', li:'#', ig:'#',
+    footerDesc:"Egypt's leading provider of integrated security and networking solutions. Protecting what matters most since 2014."
+  },
+  about: {
+    headline:"Securing Egypt's Businesses Since 2014",
+    subheadline:"Egypt's Most Trusted Partner",
+    p1:"VYRA Systems is Egypt's premier provider of integrated security and networking solutions. With over a decade of experience, we deliver cutting-edge technology tailored to each client's specific needs.",
+    p2:"From a team of 3 engineers in 2014 to 25+ certified professionals today — we've grown by earning trust, one project at a time.",
+    as1v:'10+', as1l:'Years Experience',
+    as2v:'500+', as2l:'Happy Clients',
+    as3v:'1,000+', as3l:'Projects Done',
+    as4v:'25+', as4l:'Certified Engineers',
+    mission:"To make world-class security and networking technology accessible to every Egyptian business — through expert consultation, honest pricing and unmatched technical support.",
+    vision:"To be the most trusted integrated technology partner in North Africa — setting the standard for quality, reliability and innovation."
+  },
+  team: [
+    {name:'Ahmed Hassan',    role:'CEO & Founder',        exp:'15 years in security systems'},
+    {name:'Sara El-Nakhlawy',role:'Head of Engineering',  exp:'Cisco & Hikvision certified'},
+    {name:'Omar Farid',      role:'Project Manager',      exp:'PMP certified, 200+ projects'},
+    {name:'Nour Abdelaziz',  role:'Network Architect',    exp:'CCNP, Ubiquiti UEWA'},
+    {name:'Karim Mostafa',   role:'Senior CCTV Engineer', exp:'AI surveillance specialist'},
+    {name:'Dina Samir',      role:'Business Development', exp:'10+ years B2B sales'},
+  ],
+  why: {
+    items:[
+      'Licensed & certified security professionals',
+      'Fast installation, minimal downtime',
+      '24/7 monitoring & technical support',
+      'Dedicated account manager per project',
+      'Comprehensive warranty & maintenance',
+      'International brand partnerships'
+    ],
+    stats:[
+      {num:'<4hrs', name:'Response Time',    desc:'On-site emergency response guaranteed'},
+      {num:'94%',   name:'Client Retention', desc:'Return or refer within 2 years'},
+      {num:'25+',   name:'Certified Techs',  desc:'Factory-trained engineers on staff'},
+      {num:'30+',   name:'Brand Partners',   desc:'Hikvision, Bosch, Cisco & more'},
+    ]
+  },
+  seo: {
+    title:"VYRA Systems — Engineering Tomorrow's Environments",
+    desc:'VYRA Systems engineers high-performance technology environments — networking, CCTV, sound systems and smart automation for Egypt\'s leading businesses.',
+    keywords:'CCTV Egypt, Networking Egypt, Security Systems Cairo, Smart Home Egypt'
+  }
+};
+
+function getSettings(key) {
+  try {
+    const stored = localStorage.getItem('vyra_site_'+key);
+    return stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(SITE_DEFAULTS[key]));
+  } catch(e) {
+    return JSON.parse(JSON.stringify(SITE_DEFAULTS[key]));
+  }
 }
-function saveSettings(){toast('Settings saved successfully');}
+
+function switchSettingsTab(tab, el) {
+  ['hero','stats','services','contact','about','team','why','seo'].forEach(t => {
+    const el2 = document.getElementById('settings-tab-'+t);
+    if(el2) el2.style.display = t===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  // Render dynamic editors
+  if(tab==='services') renderServicesEditor();
+  if(tab==='team')     renderTeamEditor();
+  if(tab==='why')      renderWhyEditor();
+}
+
+function loadSettingsIntoForms() {
+  // HERO
+  const h = getSettings('hero');
+  document.getElementById('s-hero-l1').value      = h.l1||'';
+  document.getElementById('s-hero-l2').value      = h.l2||'';
+  document.getElementById('s-hero-l3').value      = h.l3||'';
+  document.getElementById('s-hero-sub').value     = h.sub||'';
+  document.getElementById('s-hero-eyebrow').value = h.eyebrow||'';
+  document.getElementById('s-hero-cta1').value    = h.cta1||'';
+  document.getElementById('s-hero-cta2').value    = h.cta2||'';
+  document.getElementById('s-hero-trust').value   = h.trust||'';
+  // STATS
+  const st = getSettings('stats');
+  ['1','2','3','4'].forEach(n => {
+    document.getElementById('s-stat'+n+'-val').value = st['s'+n+'v']||'';
+    document.getElementById('s-stat'+n+'-lbl').value = st['s'+n+'l']||'';
+  });
+  // CONTACT
+  const c = getSettings('contact');
+  document.getElementById('s-company-name').value    = c.name||'';
+  document.getElementById('s-company-tagline').value = c.tagline||'';
+  document.getElementById('s-phone').value           = c.phone||'';
+  document.getElementById('s-email').value           = c.email||'';
+  document.getElementById('s-office-city').value     = c.city||'';
+  document.getElementById('s-office-sub').value      = c.sub||'';
+  document.getElementById('s-social-fb').value       = c.fb||'';
+  document.getElementById('s-social-li').value       = c.li||'';
+  document.getElementById('s-social-ig').value       = c.ig||'';
+  document.getElementById('s-footer-desc').value     = c.footerDesc||'';
+  // ABOUT
+  const a = getSettings('about');
+  document.getElementById('s-about-headline').value = a.headline||'';
+  document.getElementById('s-about-sub').value      = a.subheadline||'';
+  document.getElementById('s-about-p1').value       = a.p1||'';
+  document.getElementById('s-about-p2').value       = a.p2||'';
+  ['1','2','3','4'].forEach(n => {
+    document.getElementById('s-as'+n+'-val').value = a['as'+n+'v']||'';
+    document.getElementById('s-as'+n+'-lbl').value = a['as'+n+'l']||'';
+  });
+  document.getElementById('s-mission').value = a.mission||'';
+  document.getElementById('s-vision').value  = a.vision||'';
+  // SEO
+  const s = getSettings('seo');
+  document.getElementById('s-seo-title').value    = s.title||'';
+  document.getElementById('s-seo-desc').value     = s.desc||'';
+  document.getElementById('s-seo-keywords').value = s.keywords||'';
+}
+
+// ── SERVICES EDITOR
+function renderServicesEditor() {
+  const svcs = getSettings('services');
+  document.getElementById('services-editor').innerHTML = svcs.map((svc,i) => `
+    <div style="padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-size:.75rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Service ${i+1}</div>
+      <div class="form-row form-row-2" style="margin-bottom:0">
+        <div class="form-group"><label class="form-label">Title</label><input class="form-ctrl" id="svc${i}-title" value="${escHtml(svc.title)}"/></div>
+        <div class="form-group"><label class="form-label">Tags (comma-separated)</label><input class="form-ctrl" id="svc${i}-tags" value="${escHtml(svc.tags||'')}"/></div>
+      </div>
+      <div class="form-group" style="margin-top:10px"><label class="form-label">Description</label><textarea class="form-ctrl" id="svc${i}-desc" rows="2">${escHtml(svc.desc)}</textarea></div>
+    </div>`).join('');
+}
+
+// ── TEAM EDITOR
+function renderTeamEditor() {
+  const team = getSettings('team');
+  document.getElementById('team-editor').innerHTML = team.map((m,i) => `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+      <div class="form-group" style="margin:0"><label class="form-label">Name</label><input class="form-ctrl" id="tm${i}-name" value="${escHtml(m.name)}"/></div>
+      <div class="form-group" style="margin:0"><label class="form-label">Role / Title</label><input class="form-ctrl" id="tm${i}-role" value="${escHtml(m.role)}"/></div>
+      <div class="form-group" style="margin:0"><label class="form-label">Experience / Note</label><input class="form-ctrl" id="tm${i}-exp" value="${escHtml(m.exp||'')}"/></div>
+      <button class="btn-icon" onclick="removeTeamMember(${i})" style="color:var(--red);border-color:rgba(239,68,68,.2);margin-bottom:0"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+    </div>`).join('');
+}
+function addTeamMember() {
+  const team = getSettings('team');
+  team.push({name:'New Member',role:'Position',exp:'Experience'});
+  localStorage.setItem('vyra_site_team', JSON.stringify(team));
+  renderTeamEditor();
+}
+function removeTeamMember(i) {
+  const team = getSettings('team');
+  team.splice(i,1);
+  localStorage.setItem('vyra_site_team', JSON.stringify(team));
+  renderTeamEditor();
+}
+
+// ── WHY EDITOR
+function renderWhyEditor() {
+  const why = getSettings('why');
+  // Checklist items
+  document.getElementById('why-checklist-editor').innerHTML = (why.items||[]).map((item,i) => `
+    <div class="form-group" style="grid-column:span 1">
+      <label class="form-label">Item ${i+1}</label>
+      <input class="form-ctrl" id="why-item-${i}" value="${escHtml(item)}"/>
+    </div>`).join('');
+  // Stats
+  document.getElementById('why-stats-editor').innerHTML = (why.stats||[]).map((s,i) => `
+    <div style="padding:14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-size:.7rem;font-weight:700;color:var(--text3);margin-bottom:8px">Stat Card ${i+1}</div>
+      <div class="form-group" style="margin-bottom:8px"><label class="form-label">Number / Value</label><input class="form-ctrl" id="why-stat${i}-num" value="${escHtml(s.num)}"/></div>
+      <div class="form-group" style="margin-bottom:8px"><label class="form-label">Name</label><input class="form-ctrl" id="why-stat${i}-name" value="${escHtml(s.name)}"/></div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label">Description</label><input class="form-ctrl" id="why-stat${i}-desc" value="${escHtml(s.desc||'')}"/></div>
+    </div>`).join('');
+}
+
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── SAVE
+function saveSettings(section) {
+  let data = {};
+  if(section==='hero') {
+    data = {
+      l1: document.getElementById('s-hero-l1').value,
+      l2: document.getElementById('s-hero-l2').value,
+      l3: document.getElementById('s-hero-l3').value,
+      sub: document.getElementById('s-hero-sub').value,
+      eyebrow: document.getElementById('s-hero-eyebrow').value,
+      cta1: document.getElementById('s-hero-cta1').value,
+      cta2: document.getElementById('s-hero-cta2').value,
+      trust: document.getElementById('s-hero-trust').value,
+    };
+  } else if(section==='stats') {
+    data = {};
+    ['1','2','3','4'].forEach(n => {
+      data['s'+n+'v'] = document.getElementById('s-stat'+n+'-val').value;
+      data['s'+n+'l'] = document.getElementById('s-stat'+n+'-lbl').value;
+    });
+  } else if(section==='services') {
+    const svcs = getSettings('services');
+    data = svcs.map((_,i) => ({
+      title: document.getElementById('svc'+i+'-title')?.value || '',
+      desc:  document.getElementById('svc'+i+'-desc')?.value  || '',
+      tags:  document.getElementById('svc'+i+'-tags')?.value  || '',
+    }));
+  } else if(section==='contact') {
+    data = {
+      name:       document.getElementById('s-company-name').value,
+      tagline:    document.getElementById('s-company-tagline').value,
+      phone:      document.getElementById('s-phone').value,
+      email:      document.getElementById('s-email').value,
+      city:       document.getElementById('s-office-city').value,
+      sub:        document.getElementById('s-office-sub').value,
+      fb:         document.getElementById('s-social-fb').value,
+      li:         document.getElementById('s-social-li').value,
+      ig:         document.getElementById('s-social-ig').value,
+      footerDesc: document.getElementById('s-footer-desc').value,
+    };
+  } else if(section==='about') {
+    data = {
+      headline:    document.getElementById('s-about-headline').value,
+      subheadline: document.getElementById('s-about-sub').value,
+      p1:          document.getElementById('s-about-p1').value,
+      p2:          document.getElementById('s-about-p2').value,
+      mission:     document.getElementById('s-mission').value,
+      vision:      document.getElementById('s-vision').value,
+    };
+    ['1','2','3','4'].forEach(n => {
+      data['as'+n+'v'] = document.getElementById('s-as'+n+'-val').value;
+      data['as'+n+'l'] = document.getElementById('s-as'+n+'-lbl').value;
+    });
+  } else if(section==='team') {
+    const team = getSettings('team');
+    data = team.map((_,i) => ({
+      name: document.getElementById('tm'+i+'-name')?.value || '',
+      role: document.getElementById('tm'+i+'-role')?.value || '',
+      exp:  document.getElementById('tm'+i+'-exp')?.value  || '',
+    }));
+  } else if(section==='why') {
+    const why = getSettings('why');
+    data = {
+      items: (why.items||[]).map((_,i) => document.getElementById('why-item-'+i)?.value || ''),
+      stats: (why.stats||[]).map((s,i) => ({
+        num:  document.getElementById('why-stat'+i+'-num')?.value  || '',
+        name: document.getElementById('why-stat'+i+'-name')?.value || '',
+        desc: document.getElementById('why-stat'+i+'-desc')?.value || '',
+      }))
+    };
+  } else if(section==='seo') {
+    data = {
+      title:    document.getElementById('s-seo-title').value,
+      desc:     document.getElementById('s-seo-desc').value,
+      keywords: document.getElementById('s-seo-keywords').value,
+    };
+  }
+  localStorage.setItem('vyra_site_'+section, JSON.stringify(data));
+  toast('✓ ' + section.charAt(0).toUpperCase()+section.slice(1) + ' settings saved — reload the website to see changes');
+}
 
 /* ══════════════════════════════════════════════════════
    INIT
@@ -2811,6 +3276,7 @@ async function initApp(){
   renderReports();
   renderUsers();
   renderRoles();
+  loadSettingsIntoForms();
 }
 
 document.addEventListener('DOMContentLoaded',function(){
